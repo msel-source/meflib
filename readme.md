@@ -24,4 +24,4 @@ Documentation of mef library can be found [here](http://msel.mayo.edu/codes.html
 License
 -------
 
-Pymef is licensed under the Apache software license. See [LICENSE.txt](./LICENSE.txt) for details.
+This software is licensed under the Apache software license 2.0. See [LICENSE.txt](./LICENSE.txt) for details.
