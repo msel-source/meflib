@@ -1,4 +1,4 @@
-Pymef
+Multiscale Electrophysiology Format (MEF)
 ====
 
 Library for Multiscale Electrophysiology Format developed by 
