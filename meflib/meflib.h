@@ -86,19 +86,34 @@
 #ifndef SIZE_TYPES_IN
 #define SIZE_TYPES_IN
 
-typedef char			si1;
-typedef unsigned char		ui1;
-typedef short			si2;
-typedef unsigned short		ui2;
-typedef int			si4;
-typedef unsigned int		ui4;
-typedef long int		si8;
-typedef long unsigned int	ui8;
-typedef float			sf4;
-typedef double			sf8;
-typedef long double		sf16;   // NOTE: it often requires an explicit compiler instruction to implement true long floating point math
-					// in gcc and icc: "-Qoption,cpp,--extended_float_type"
+#ifdef _WIN32
+	typedef char			si1;
+	typedef unsigned char		ui1;
+	typedef short			si2;
+	typedef unsigned short		ui2;
+	typedef int			si4;
+	typedef unsigned int		ui4;
+	typedef long long int		si8;
+	typedef long long unsigned int	ui8;
+	typedef float			sf4;
+	typedef double			sf8;
+	typedef long double		sf16;   // NOTE: it often requires an explicit compiler instruction to implement true long floating point math
+						// in gcc and icc: "-Qoption,cpp,--extended_float_type"
+#else
+	typedef char			si1;
+	typedef unsigned char		ui1;
+	typedef short			si2;
+	typedef unsigned short		ui2;
+	typedef int			si4;
+	typedef unsigned int		ui4;
+	typedef long int		si8;
+	typedef long unsigned int	ui8;
+	typedef float			sf4;
+	typedef double			sf8;
+	typedef long double		sf16;   // NOTE: it often requires an explicit compiler instruction to implement true long floating point math
+						// in gcc and icc: "-Qoption,cpp,--extended_float_type"
 
+#endif
 #endif
 
 
