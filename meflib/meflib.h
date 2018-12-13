@@ -44,20 +44,38 @@
 /************************************************************************************/
 /**********************************  Library Includes  ******************************/
 /************************************************************************************/
+#ifdef _WIN32
+	#define _USE_MATH_DEFINES
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/time.h>
-#include <math.h>
-#include <float.h>
-#include <sys/stat.h>
-#include <stdarg.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <limits.h>
-//#include <pthread.h>
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include <string.h>
+	#include <time.h>
+	#include <math.h>
+	#include <float.h>
+	#include <sys/stat.h>
+	#include <stdarg.h>
+	#include <errno.h>
+	#include <fcntl.h>
+	#include <limits.h>
+	#include <malloc.h>  // for alloca()
+#else
+	#include <stdlib.h>
+	#include <unistd.h>
+	#include <stdio.h>
+	#include <string.h>
+	#include <sys/time.h>
+	#include <math.h>
+	#include <float.h>
+	#include <sys/stat.h>
+	#include <stdarg.h>
+	#include <errno.h>
+	#include <fcntl.h>
+	#include <limits.h>
+	//#include <pthread.h>
+#endif
+
+
 
 
 
