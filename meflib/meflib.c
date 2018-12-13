@@ -41,7 +41,73 @@
 // global
 MEF_GLOBALS	*MEF_globals = NULL;
 
+#ifdef _WIN32
+	void bzero(void *dest, size_t num)
+	{
+		memset(dest, 0, num);
+	}
 
+	int random()
+	{
+		return rand();
+	}
+
+	void srandom(int num)
+	{
+		srand(num);
+	}
+
+	#if !HAVE_TIME_R
+	struct tm *gmtime_r(time_t *_clock, struct tm *_result)
+	{
+		struct tm *p;
+
+	    p = gmtime(_clock);
+
+		if (p)
+			*(_result) = *p;
+
+		return p;
+	}
+
+	struct tm *localtime_r(time_t *_clock, struct tm *_result)
+	{
+		struct tm *p;
+
+	    p = localtime(_clock);
+
+		if (p)
+			*(_result) = *p;
+
+		return p;
+	}
+	#endif // !HAVE_TIME_R
+
+	char *asctime_r(struct tm *timeptr, char *buf)
+	{
+		strcpy(buf, asctime(timeptr));
+
+		return buf;
+	}
+
+	time_t timegm(struct tm * a_tm)
+	{
+	    int offset;
+		time_t ltime;
+	    time_t utc;
+	    struct tm tm_val;
+
+	    ltime = mktime(a_tm);
+		gmtime_s(&tm_val, &ltime);
+		offset = (tm_val.tm_hour - a_tm->tm_hour);
+		if (offset > 12)
+		{
+			offset = 24 - offset;
+		}
+		utc = mktime(a_tm) - offset * 3600;
+		return utc;
+	}
+#endif
 
 
 /*************************************************************************/
