@@ -3762,10 +3762,11 @@ si4	fps_read(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
 		behavior_on_fail = MEF_globals->behavior_on_fail;
 	
-	// lock
-	if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
-		fps_lock(fps, F_RDLCK, function, line, behavior_on_fail);
-	
+	#ifndef _WIN32
+		// lock
+		if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
+			fps_lock(fps, F_RDLCK, function, line, behavior_on_fail);
+	#endif
 	// read
 	if (fps->directives.io_bytes == FPS_FULL_FILE)
 		i_bytes = fps->file_length;
@@ -3773,10 +3774,11 @@ si4	fps_read(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 		i_bytes = fps->directives.io_bytes;
 	(void) e_fread(fps->raw_data, sizeof(ui1), (size_t) i_bytes, fps->fp, fps->full_file_name, __FUNCTION__, __LINE__, behavior_on_fail);
 	
-	// unlock
-	if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
-		fps_unlock(fps, function, line, behavior_on_fail);
-	
+	#ifndef _WIN32
+		// unlock
+		if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
+			fps_unlock(fps, function, line, behavior_on_fail);
+	#endif
 	
 	return(0);
 }
