@@ -3653,22 +3653,22 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	mode = NULL;
 	switch(fps->directives.open_mode) {
 		case FPS_R_OPEN_MODE:
-			mode = "r";
+			mode = "rb";
 			break;
 		case FPS_R_PLUS_OPEN_MODE:
-			mode = "r+";
+			mode = "rb+";
 			break;
 		case FPS_W_OPEN_MODE:
-			mode = "w";
+			mode = "wb";
 			break;
 		case FPS_W_PLUS_OPEN_MODE:
-			mode = "w+";
+			mode = "wb+";
 			break;
 		case FPS_A_OPEN_MODE:
-			mode = "a";
+			mode = "ab";
 			break;
 		case FPS_A_PLUS_OPEN_MODE:
-			mode = "a+";
+			mode = "ab+";
 			break;
 		case FPS_NO_OPEN_MODE:
 		default:
