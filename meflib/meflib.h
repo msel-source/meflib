@@ -930,7 +930,9 @@ si4			sort_by_val(const void *n1, const void *n2);
 sf8			val_equals_prop(NODE *curr_node, NODE *prop_node);
 si4			write_MEF_file(FILE_PROCESSING_STRUCT *fps);
 
-
+#ifdef _WIN32
+	void 		slash_to_backslash(si1*);
+#endif
 
 /************************************************************************************/
 /**************************************  FILTER  ************************************/

@@ -5480,6 +5480,22 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 	return(channel);
 }
 
+#ifdef _WIN32
+	void slash_to_backslash(si1* orig_string)
+	{
+	    si1     *c;
+
+	    c = orig_string;
+
+	    while(*c != '\0')
+	    {
+	        if (*c == '/'){
+	            *c = '\\';
+	        }
+	        *c++;
+	    }
+	}
+#endif
 
 FILE_PROCESSING_STRUCT	*read_MEF_file(FILE_PROCESSING_STRUCT *fps, si1 *file_name, si1 *password, PASSWORD_DATA *password_data, FILE_PROCESSING_DIRECTIVES *directives, ui4 behavior_on_fail)
 {
@@ -5488,6 +5504,10 @@ FILE_PROCESSING_STRUCT	*read_MEF_file(FILE_PROCESSING_STRUCT *fps, si1 *file_nam
 	si4	allocated_fps, CRC_result;
         void	*data_ptr;
 	
+	#ifdef _WIN32
+        	if (fps->full_file_name != NULL)
+        		slash_to_backslash(fps->full_file_name);
+	#endif
         
 	if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
 		behavior_on_fail = MEF_globals->behavior_on_fail;
@@ -8912,6 +8932,11 @@ si4	write_MEF_file(FILE_PROCESSING_STRUCT *fps)
 {
 	si4	CRC_result;
 	
+	#ifdef _WIN32
+		if (fps->full_file_name != NULL)
+	        	slash_to_backslash(fps->full_file_name);
+	#endif
+
 	// clobber file if exists and is closed, create if non-existent
 	if (fps->fp == NULL) {
 		if (!(fps->directives.open_mode & FPS_GENERIC_WRITE_OPEN_MODE))
