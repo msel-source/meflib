@@ -2297,69 +2297,131 @@ si4	encrypt_records(FILE_PROCESSING_STRUCT *fps)
         return(0);
 }
 
-
-si4	extract_path_parts(si1 *full_file_name, si1 *path, si1 *name, si1 *extension)
-{
-	si1	*c, *cc, *cwd, temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
-	
-	
-	// check that path starts from root
-        if (*full_file_name == '/') {
-		MEF_strncpy(temp_full_file_name, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
-	} else {
-		if (!(MEF_globals->behavior_on_fail & SUPPRESS_ERROR_OUTPUT))
-			(void) fprintf(stderr, "%s() Warning: path \"%s\" does not start from root => prepending current working directory\n", __FUNCTION__, full_file_name);
-		cwd = getenv("PWD");
-		c = full_file_name;
-		if (*c == '.' && *(c + 1) != '.')
-			++c;
-		if (*c == '/')
-			++c;
-		MEF_snprintf(temp_full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s", cwd, c);
-	}
-	
-	// move pointer to end of string
-	c = temp_full_file_name + strlen(temp_full_file_name) - 1;
-        
-	// remove terminal "/" if present
-	if (*c == '/')
-		*c-- = 0;
-	
-	// step back to first extension
-	cc = c;
-	while (*--c != '.') {
-		if (*c == '/') {
-			c = cc;
-			break;
-		}
-	}
-	
-	// copy extension if allocated
-	if (extension != NULL) {
-		if (*c == '.')
-			MEF_strncpy(extension, c + 1, TYPE_BYTES);
-		else
-			bzero(extension, TYPE_BYTES);
-	}
-	if (*c == '.')
-		*c-- = 0;
+#ifdef _WIN32
+	si4	extract_path_parts(si1 *full_file_name, si1 *path, si1 *name, si1 *extension)
+	{
+		si1	*c, *cc, *cwd, temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
 		
-	// step back to next directory break
-	while (*--c != '/');
-	
-	// copy name if allocated
-	if (name != NULL)
-		MEF_strncpy(name, c + 1, MEF_BASE_FILE_NAME_BYTES);
-	*c = 0;
-	
-	// copy path if allocated
-	if (path != NULL)
-		MEF_strncpy(path, temp_full_file_name, MEF_FULL_FILE_NAME_BYTES);
+	    slash_to_backslash(full_file_name);
 
-	
-	return(0);
-}
+		// check that path starts from root
+	    if ((*full_file_name == 'c') | (*full_file_name == 'C')) {
+			MEF_strncpy(temp_full_file_name, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
+		} else {
+			if (!(MEF_globals->behavior_on_fail & SUPPRESS_ERROR_OUTPUT))
+				(void) fprintf(stderr, "%s() Warning: path \"%s\" does not start from root => prepending current working directory\n", __FUNCTION__, full_file_name);
+			cwd = getenv("PWD");
+			c = full_file_name;
+			if (*c == '.' && *(c + 1) != '.')
+				++c;
+			if (*c == '/')
+				++c;
+			MEF_snprintf(temp_full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s\\%s", cwd, c);
+		}
+		
+		// move pointer to end of string
+		c = temp_full_file_name + strlen(temp_full_file_name) - 1;
+	        
+		// remove terminal "\\" if present
+		if (*c == '\\')
+			*c-- = 0;
+		
+		// step back to first extension
+		cc = c;
+		while (*--c != '.') {
+			if (*c == '\\') {
+				c = cc;
+				break;
+			}
+		}
+		
+		// copy extension if allocated
+		if (extension != NULL) {
+			if (*c == '.')
+				MEF_strncpy(extension, c + 1, TYPE_BYTES);
+			else
+				bzero(extension, TYPE_BYTES);
+		}
+		if (*c == '.')
+			*c-- = 0;
+			
+		// step back to next directory break
+		while (*--c != '\\');
+		
+		// copy name if allocated
+		if (name != NULL)
+			MEF_strncpy(name, c + 1, MEF_BASE_FILE_NAME_BYTES);
+		*c = 0;
+		
+		// copy path if allocated
+		if (path != NULL)
+			MEF_strncpy(path, temp_full_file_name, MEF_FULL_FILE_NAME_BYTES);
+		
+		return(0);
+	}
+#else
+	si4	extract_path_parts(si1 *full_file_name, si1 *path, si1 *name, si1 *extension)
+	{
+		si1	*c, *cc, *cwd, temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
+		
+		
+		// check that path starts from root
+	        if (*full_file_name == '/') {
+			MEF_strncpy(temp_full_file_name, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
+		} else {
+			if (!(MEF_globals->behavior_on_fail & SUPPRESS_ERROR_OUTPUT))
+				(void) fprintf(stderr, "%s() Warning: path \"%s\" does not start from root => prepending current working directory\n", __FUNCTION__, full_file_name);
+			cwd = getenv("PWD");
+			c = full_file_name;
+			if (*c == '.' && *(c + 1) != '.')
+				++c;
+			if (*c == '/')
+				++c;
+			MEF_snprintf(temp_full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s", cwd, c);
+		}
+		
+		// move pointer to end of string
+		c = temp_full_file_name + strlen(temp_full_file_name) - 1;
+	        
+		// remove terminal "/" if present
+		if (*c == '/')
+			*c-- = 0;
+		
+		// step back to first extension
+		cc = c;
+		while (*--c != '.') {
+			if (*c == '/') {
+				c = cc;
+				break;
+			}
+		}
+		
+		// copy extension if allocated
+		if (extension != NULL) {
+			if (*c == '.')
+				MEF_strncpy(extension, c + 1, TYPE_BYTES);
+			else
+				bzero(extension, TYPE_BYTES);
+		}
+		if (*c == '.')
+			*c-- = 0;
+			
+		// step back to next directory break
+		while (*--c != '/');
+		
+		// copy name if allocated
+		if (name != NULL)
+			MEF_strncpy(name, c + 1, MEF_BASE_FILE_NAME_BYTES);
+		*c = 0;
+		
+		// copy path if allocated
+		if (path != NULL)
+			MEF_strncpy(path, temp_full_file_name, MEF_FULL_FILE_NAME_BYTES);
 
+		
+		return(0);
+	}
+#endif
 
 void	extract_terminal_password_bytes(si1 *password, si1 *password_bytes)
 {
