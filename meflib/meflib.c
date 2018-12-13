@@ -3783,41 +3783,41 @@ si4	fps_read(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	return(0);
 }
 
-
-si4	fps_unlock(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 behavior_on_fail)
-{
-	struct flock	fl;
-	
-	
-	if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
-		behavior_on_fail = MEF_globals->behavior_on_fail;
-	
-	fl.l_type = F_UNLCK;
-	fl.l_whence = SEEK_SET;
-	fl.l_start = 0;
-	fl.l_len = 0;
-	fl.l_pid = getpid();
-	if (fcntl(fps->fd, F_SETLKW, &fl) == -1) {
-		if (!(behavior_on_fail & SUPPRESS_ERROR_OUTPUT)) {
-			(void) fprintf(stderr, "%c\n\tfcntl() failed to unlock file\n", 7);
-			(void) fprintf(stderr, "\tsystem error number %d (%s)\n", errno, strerror(errno));
-			if (function != NULL)
-				(void) fprintf(stderr, "\tcalled from function \"%s\", line %d\n", function, line);
+#ifndef _WIN32
+	si4	fps_unlock(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 behavior_on_fail)
+	{
+		struct flock	fl;
+		
+		
+		if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
+			behavior_on_fail = MEF_globals->behavior_on_fail;
+		
+		fl.l_type = F_UNLCK;
+		fl.l_whence = SEEK_SET;
+		fl.l_start = 0;
+		fl.l_len = 0;
+		fl.l_pid = getpid();
+		if (fcntl(fps->fd, F_SETLKW, &fl) == -1) {
+			if (!(behavior_on_fail & SUPPRESS_ERROR_OUTPUT)) {
+				(void) fprintf(stderr, "%c\n\tfcntl() failed to unlock file\n", 7);
+				(void) fprintf(stderr, "\tsystem error number %d (%s)\n", errno, strerror(errno));
+				if (function != NULL)
+					(void) fprintf(stderr, "\tcalled from function \"%s\", line %d\n", function, line);
+				if (behavior_on_fail & RETURN_ON_FAIL)
+					(void) fprintf(stderr, "\t=> returning -1\n\n");
+				else if (behavior_on_fail & EXIT_ON_FAIL)
+					(void) fprintf(stderr, "\t=> exiting program\n\n");
+			}
 			if (behavior_on_fail & RETURN_ON_FAIL)
-				(void) fprintf(stderr, "\t=> returning -1\n\n");
+				return(-1);
 			else if (behavior_on_fail & EXIT_ON_FAIL)
-				(void) fprintf(stderr, "\t=> exiting program\n\n");
+				exit(1);
 		}
-		if (behavior_on_fail & RETURN_ON_FAIL)
-			return(-1);
-		else if (behavior_on_fail & EXIT_ON_FAIL)
-			exit(1);
+		
+		
+		return(0);
 	}
-	
-	
-	return(0);
-}
-
+#endif
 
 si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 behavior_on_fail)
 {
