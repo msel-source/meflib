@@ -3974,58 +3974,112 @@ void	free_session(SESSION *session, si4 free_session_structure)
         return;
 }
 
+#ifdef _WIN32
+	si1	**generate_file_list(si1 **file_list, si4 *num_files, si1 *enclosing_directory, si1 *extension)  // can be used to get a directory list also
+	{
+		si4	i, nf;
+		si1	temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
+	    si1 unique_junk[MEF_FULL_FILE_NAME_BYTES];
+		si1 *tmp_dir, *unique_file;
+		FILE	*fp;
+		
+		
+		// free previous file list
+		if (file_list != NULL) {
+			for (i = 0; i < *num_files; ++i)
+				free(file_list[i]);
+			free(file_list);
+		}
+		
+		// create unique junk file - avoids conflicts when runnig multiple processes which fight for the same file access
+	    strcpy(unique_junk, getenv("USERPROFILE"));
+	    strcat(unique_junk,"\\junk");
+		// unique_file = tmpnam(NULL);
+	    //strcat(unique_junk, unique_file);
 
-si1	**generate_file_list(si1 **file_list, si4 *num_files, si1 *enclosing_directory, si1 *extension)  // can be used to get a directory list also
-{
-	si4	i, nf;
-	si1	temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
-	si1 *unique_junk;
-	FILE	*fp;
-	
-	
-	// free previous file list
-	if (file_list != NULL) {
-		for (i = 0; i < *num_files; ++i)
-			free(file_list[i]);
-		free(file_list);
+		// count
+		sprintf(temp_str, "dir /s /b \"%s\\*.%s\" > \"%s\"", enclosing_directory, extension, unique_junk);
+		(void) system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		fp = e_fopen(unique_junk, "r", __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		*num_files = 0;
+		while ((fscanf(fp, "%s", temp_str)) != EOF)
+			++(*num_files);
+		
+		// allocate
+		if (file_list == NULL ) {
+			file_list = (si1 **) e_calloc((size_t) *num_files, sizeof(si1 *), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+			for (i = 0; i < *num_files; ++i)
+				file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		}
+		
+		// build file list
+		rewind(fp);
+		nf = 0;
+		for (i = 0; i < *num_files; ++i){
+			nf = fscanf(fp, "%s", file_list[i]);
+			if (nf == 0)
+				return 0;
+		}
+		
+		// clean up
+		fclose(fp);
+		sprintf(temp_str, "del %s", unique_junk);
+		(void) e_system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		
+		return(file_list);
 	}
-	
-	// create unique junk file - avoids conflicts when runnig multiple processes which fight for the same file access
-	unique_junk = tmpnam(NULL);
+#else
+	si1	**generate_file_list(si1 **file_list, si4 *num_files, si1 *enclosing_directory, si1 *extension)  // can be used to get a directory list also
+	{
+		si4	i, nf;
+		si1	temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
+		si1 *unique_junk;
+		FILE	*fp;
+		
+		
+		// free previous file list
+		if (file_list != NULL) {
+			for (i = 0; i < *num_files; ++i)
+				free(file_list[i]);
+			free(file_list);
+		}
+		
+		// create unique junk file - avoids conflicts when runnig multiple processes which fight for the same file access
+		unique_junk = tmpnam(NULL);
 
-	// count
-	sprintf(temp_str, "ls -1d \"%s\"/*.%s > %s 2> /dev/null", enclosing_directory, extension, unique_junk);
-	(void) e_system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-	fp = e_fopen(unique_junk, "r", __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-	
-	*num_files = 0;
-	while ((fscanf(fp, "%s", temp_str)) != EOF)
-		++(*num_files);
-	
-	// allocate
-	if (file_list == NULL ) {
-		file_list = (si1 **) e_calloc((size_t) *num_files, sizeof(si1 *), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-		for (i = 0; i < *num_files; ++i)
-			file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		// count
+		sprintf(temp_str, "ls -1d \"%s\"/*.%s > %s 2> /dev/null", enclosing_directory, extension, unique_junk);
+		(void) e_system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		fp = e_fopen(unique_junk, "r", __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		
+		*num_files = 0;
+		while ((fscanf(fp, "%s", temp_str)) != EOF)
+			++(*num_files);
+		
+		// allocate
+		if (file_list == NULL ) {
+			file_list = (si1 **) e_calloc((size_t) *num_files, sizeof(si1 *), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+			for (i = 0; i < *num_files; ++i)
+				file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		}
+		
+		// build file list
+		rewind(fp);
+		nf = 0;
+		for (i = 0; i < *num_files; ++i){
+			nf = fscanf(fp, "%s", file_list[i]);
+			if (nf == 0)
+				return 0;
+		}
+		
+		// clean up
+		fclose(fp);
+		sprintf(temp_str, "rm %s",unique_junk);
+		(void) e_system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		
+		return(file_list);
 	}
-	
-	// build file list
-	rewind(fp);
-	nf = 0;
-	for (i = 0; i < *num_files; ++i){
-		nf = fscanf(fp, "%s", file_list[i]);
-		if (nf == 0)
-			return 0;
-	}
-	
-	// clean up
-	fclose(fp);
-	sprintf(temp_str, "rm %s",unique_junk);
-	(void) e_system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-	
-	return(file_list);
-}
-
+#endif
 
 si1	*generate_hex_string(ui1 *bytes, si4 num_bytes, si1 *string)
 {
