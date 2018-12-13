@@ -3828,9 +3828,11 @@ si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 be
 	if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
 		behavior_on_fail = MEF_globals->behavior_on_fail;
 	
-	// lock
-	if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
-		fps_lock(fps, F_WRLCK, function, line, behavior_on_fail);
+	#ifndef _WIN32
+		// lock
+		if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
+			fps_lock(fps, F_WRLCK, function, line, behavior_on_fail);
+	#endif
 	
 	// write
 	if (fps->directives.io_bytes == FPS_FULL_FILE)
@@ -3839,9 +3841,11 @@ si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 be
 		o_bytes = fps->directives.io_bytes;
 	(void) e_fwrite(fps->raw_data, sizeof(ui1), (size_t) o_bytes, fps->fp, fps->full_file_name, __FUNCTION__, __LINE__, behavior_on_fail);
 	
-	// unlock
-	if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
-		fps_unlock(fps, function, line, behavior_on_fail);
+	#ifndef _WIN32
+		// unlock
+		if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
+			fps_unlock(fps, function, line, behavior_on_fail);
+	#endif
         
 	// get file length
 	fflush(fps->fp);  // have to flush to update stat structure after write
