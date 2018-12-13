@@ -3715,33 +3715,35 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	// get file descriptor
 	fps->fd = fileno(fps->fp);
 	
-	// lock
-	if (fps->directives.lock_mode != FPS_NO_LOCK_MODE) {
-		lock_type = FPS_NO_LOCK_TYPE;
-		if (fps->directives.open_mode == FPS_R_OPEN_MODE) {
-			if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ_OPEN)
-				lock_type = F_RDLCK;
-			else if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_READ_OPEN)
+	#ifndef _WIN32
+		// lock
+		if (fps->directives.lock_mode != FPS_NO_LOCK_MODE) {
+			lock_type = FPS_NO_LOCK_TYPE;
+			if (fps->directives.open_mode == FPS_R_OPEN_MODE) {
+				if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ_OPEN)
+					lock_type = F_RDLCK;
+				else if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_READ_OPEN)
+					lock_type = F_WRLCK;
+			} else if (fps->directives.lock_mode & (FPS_WRITE_LOCK_ON_WRITE_OPEN | FPS_WRITE_LOCK_ON_READ_WRITE_OPEN)) {
 				lock_type = F_WRLCK;
-		} else if (fps->directives.lock_mode & (FPS_WRITE_LOCK_ON_WRITE_OPEN | FPS_WRITE_LOCK_ON_READ_WRITE_OPEN)) {
-			lock_type = F_WRLCK;
-		} else {
-			if (!(MEF_globals->behavior_on_fail & SUPPRESS_ERROR_OUTPUT)) {
-				(void) fprintf(stderr, "%c\n\t%s(): incompatible lock (%u) and open (%u) modes\n", 7, __FUNCTION__, fps->directives.lock_mode, fps->directives.open_mode);
-				if (function != NULL)
-					(void) fprintf(stderr, "\tcalled from function \"%s\", line %d\n", function, line);
+			} else {
+				if (!(MEF_globals->behavior_on_fail & SUPPRESS_ERROR_OUTPUT)) {
+					(void) fprintf(stderr, "%c\n\t%s(): incompatible lock (%u) and open (%u) modes\n", 7, __FUNCTION__, fps->directives.lock_mode, fps->directives.open_mode);
+					if (function != NULL)
+						(void) fprintf(stderr, "\tcalled from function \"%s\", line %d\n", function, line);
+					if (behavior_on_fail & RETURN_ON_FAIL)
+						(void) fprintf(stderr, "\t=> returning -1\n\n");
+					else if (behavior_on_fail & EXIT_ON_FAIL)
+						(void) fprintf(stderr, "\t=> exiting program\n\n");
+				}
 				if (behavior_on_fail & RETURN_ON_FAIL)
-					(void) fprintf(stderr, "\t=> returning -1\n\n");
+					return(-1);
 				else if (behavior_on_fail & EXIT_ON_FAIL)
-					(void) fprintf(stderr, "\t=> exiting program\n\n");
+					exit(1);
 			}
-			if (behavior_on_fail & RETURN_ON_FAIL)
-				return(-1);
-			else if (behavior_on_fail & EXIT_ON_FAIL)
-				exit(1);
+			fps_lock(fps, lock_type, function, line, behavior_on_fail);
 		}
-		fps_lock(fps, lock_type, function, line, behavior_on_fail);
-	}
+	#endif
 	
 	// get file length
 	fstat(fps->fd, &sb);
