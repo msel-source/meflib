@@ -3664,7 +3664,9 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 {
 	si1		*mode, path[MEF_FULL_FILE_NAME_BYTES], command[MEF_FULL_FILE_NAME_BYTES + 16];
 	si1		name[MEF_BASE_FILE_NAME_BYTES], extension[TYPE_BYTES];
-	si4		lock_type;
+	#ifndef _WIN32
+		si4		lock_type;
+	#endif
 	struct stat	sb;
 	
 	
@@ -4006,7 +4008,7 @@ void	free_session(SESSION *session, si4 free_session_structure)
 		si4	i, nf;
 		si1	temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
 	    	si1 unique_junk[MEF_FULL_FILE_NAME_BYTES];
-		si1 *tmp_dir, *unique_file;
+		// si1 *tmp_dir, *unique_file;
 		FILE	*fp;
 		
 		
