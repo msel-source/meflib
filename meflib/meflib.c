@@ -3979,7 +3979,7 @@ void	free_session(SESSION *session, si4 free_session_structure)
 	{
 		si4	i, nf;
 		si1	temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
-	    si1 unique_junk[MEF_FULL_FILE_NAME_BYTES];
+	    	si1 unique_junk[MEF_FULL_FILE_NAME_BYTES];
 		si1 *tmp_dir, *unique_file;
 		FILE	*fp;
 		
@@ -3992,10 +3992,10 @@ void	free_session(SESSION *session, si4 free_session_structure)
 		}
 		
 		// create unique junk file - avoids conflicts when runnig multiple processes which fight for the same file access
-	    strcpy(unique_junk, getenv("USERPROFILE"));
-	    strcat(unique_junk,"\\junk");
+		strcpy(unique_junk, getenv("USERPROFILE"));
+		strcat(unique_junk,"\\junk");
 		// unique_file = tmpnam(NULL);
-	    //strcat(unique_junk, unique_file);
+	    	//strcat(unique_junk, unique_file);
 
 		// count
 		sprintf(temp_str, "dir /s /b \"%s\\*.%s\" > \"%s\"", enclosing_directory, extension, unique_junk);
@@ -4241,7 +4241,9 @@ void	initialize_MEF_globals()
 	// miscellaneous
 	MEF_globals->verbose = MEF_GLOBALS_VERBOSE_DEFAULT;
         MEF_globals->behavior_on_fail = MEF_GLOBALS_BEHAVIOR_ON_FAIL_DEFAULT;
-	MEF_globals->file_creation_umask = MEF_GLOBALS_FILE_CREATION_UMASK_DEFAULT;
+        #ifndef _WIN32
+		MEF_globals->file_creation_umask = MEF_GLOBALS_FILE_CREATION_UMASK_DEFAULT;
+	#endif
 	
 	
 	return;
