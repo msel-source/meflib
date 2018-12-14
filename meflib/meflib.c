@@ -4117,7 +4117,11 @@ si8	generate_recording_time_offset(si8 recording_start_time_uutc, si4 GMT_offset
 	if (recording_start_time_uutc == RTO_USE_SYSTEM_TIME) { // use current system time and time zone
 		recording_start_time_utc = time(NULL);
 		(void) localtime_r(&recording_start_time_utc, &time_info);
-		GMT_offset = time_info.tm_gmtoff;
+		#ifdef _WIN32
+			GMT_offset = -_timezone;
+		#else
+			GMT_offset = time_info.tm_gmtoff;
+		#endif
 	} else {
                 recording_start_time_utc = recording_start_time_uutc / (si8) 1e6;
                 if (GMT_offset > MAXIMUM_GMT_OFFSET || GMT_offset < MINIMUM_GMT_OFFSET) {
