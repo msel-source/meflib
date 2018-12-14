@@ -1941,7 +1941,11 @@ void	*e_calloc(size_t n_members, size_t size, const si1 *function, si4 line, ui4
 	
 	if ((ptr = calloc(n_members, size)) == NULL) {
 		if (!(behavior_on_fail & SUPPRESS_ERROR_OUTPUT)) {
-			(void) fprintf(stderr, "%c\n\t%s() failed to allocate the requested array (%lld members of size %lld)\n", 7, __FUNCTION__, n_members, size);
+			#ifdef _WIN32
+				(void) fprintf(stderr, "%c\n\t%s() failed to allocate the requested array (%lld members of size %lld)\n", 7, __FUNCTION__, n_members, size);
+			#else
+				(void) fprintf(stderr, "%c\n\t%s() failed to allocate the requested array (%ld members of size %ld)\n", 7, __FUNCTION__, n_members, size);
+			#endif
 			(void) fprintf(stderr, "\tsystem error number %d (%s)\n", errno, strerror(errno));
 			if (function != NULL)
 				(void) fprintf(stderr, "\tcalled from function \"%s\", line %d\n", function, line);
@@ -2028,7 +2032,11 @@ si4	e_fseek(FILE *stream, size_t offset, si4 whence, si1 *path, const si1 *funct
 	
 	if ((fseek(stream, offset, whence)) == -1) {
 		if (!(behavior_on_fail & SUPPRESS_ERROR_OUTPUT)) {
-			(void) fprintf(stderr, "%c\n\t%s() failed to move the file pointer to requested location (offset %lld, whence %d)\n", 7, __FUNCTION__, offset, whence);
+			#ifdef _WIN32
+				(void) fprintf(stderr, "%c\n\t%s() failed to move the file pointer to requested location (offset %lld, whence %d)\n", 7, __FUNCTION__, offset, whence);
+			#else
+				(void) fprintf(stderr, "%c\n\t%s() failed to move the file pointer to requested location (offset %ld, whence %d)\n", 7, __FUNCTION__, offset, whence);
+			#endif
 			(void) UTF8_fprintf(stderr, "%\tin file \"%s\"\n", path);
 			(void) fprintf(stderr, "\tsystem error number %d (%s)\n", errno, strerror(errno));
 			if (function != NULL)
@@ -2119,7 +2127,11 @@ void	*e_malloc(size_t n_bytes, const si1 *function, si4 line, ui4 behavior_on_fa
 	
 	if ((ptr = malloc(n_bytes)) == NULL) {
 		if (!(behavior_on_fail & SUPPRESS_ERROR_OUTPUT)) {
-			(void) fprintf(stderr, "%c\n\t%s() failed to allocate the requested array (%lld bytes)\n", 7, __FUNCTION__, n_bytes);
+			#ifdef _WIN32
+				(void) fprintf(stderr, "%c\n\t%s() failed to allocate the requested array (%lld bytes)\n", 7, __FUNCTION__, n_bytes);
+			#else
+				(void) fprintf(stderr, "%c\n\t%s() failed to allocate the requested array (%ld bytes)\n", 7, __FUNCTION__, n_bytes);
+			#endif
 			(void) fprintf(stderr, "\tsystem error number %d (%s)\n", errno, strerror(errno));
 			if (function != NULL)
 				(void) fprintf(stderr, "\tcalled from function \"%s\", line %d\n", function, line);
@@ -2146,7 +2158,11 @@ void	*e_realloc(void *ptr, size_t n_bytes, const si1 *function, si4 line, ui4 be
 	
 	if ((ptr = realloc(ptr, n_bytes)) == NULL) {
 		if (!(behavior_on_fail & SUPPRESS_ERROR_OUTPUT)) {
-			(void) fprintf(stderr, "%c\n\t%s() failed to reallocate the requested array (%lld bytes)\n", 7, __FUNCTION__, n_bytes);
+			#ifdef _WIN32
+				(void) fprintf(stderr, "%c\n\t%s() failed to reallocate the requested array (%lld bytes)\n", 7, __FUNCTION__, n_bytes);
+			#else
+				(void) fprintf(stderr, "%c\n\t%s() failed to reallocate the requested array (%ld bytes)\n", 7, __FUNCTION__, n_bytes);
+			#endif
 			(void) fprintf(stderr, "\tsystem error number %d (%s)\n", errno, strerror(errno));
 			if (function != NULL)
 				(void) fprintf(stderr, "\tcalled from function \"%s\", line %d\n", function, line);
@@ -4149,7 +4165,11 @@ si8	generate_recording_time_offset(si8 recording_start_time_uutc, si4 GMT_offset
         MEF_globals->GMT_offset = GMT_offset;
         
         if (MEF_globals->verbose == MEF_TRUE) {
-		printf("Recording Time Offset = %lld\n", recording_time_offset_uutc);
+		#ifdef _WIN32
+			printf("Recording Time Offset = %lld\n", recording_time_offset_uutc);
+		#else
+			printf("Recording Time Offset = %ld\n", recording_time_offset_uutc);
+		#endif
 		printf("GMT Offset = %d\n", GMT_offset);
 	}
 
@@ -7153,7 +7173,11 @@ void	RED_show_block_header(RED_BLOCK_HEADER *bh)
 		local_date_time_string(bh->start_time, time_str);
 		if (bh->start_time < 0)
 			printf("Offset ");
-		printf("Start Time: %lld (uUTC), %s (ascii, local)\n", ABS(bh->start_time), time_str);
+		#ifdef _WIN32
+			printf("Start Time: %lld (uUTC), %s (ascii, local)\n", ABS(bh->start_time), time_str);
+		#else
+			printf("Start Time: %ld (uUTC), %s (ascii, local)\n", ABS(bh->start_time), time_str);
+		#endif
 	}
 	generate_hex_string((ui1 *) &bh->statistics, RED_BLOCK_STATISTICS_BYTES, hex_str);
 	printf("Statistics: %s\n", hex_str);
@@ -7732,14 +7756,22 @@ void	show_file_processing_struct(FILE_PROCESSING_STRUCT *fps)
 	if (fps->file_length == FPS_FILE_LENGTH_UNKNOWN)
 		printf("unknown\n");
 	else
-		printf("%lld\n", fps->file_length);
+		#ifdef _WIN32
+			printf("%lld\n", fps->file_length);
+		#else
+			printf("%ld\n", fps->file_length);
+		#endif
 	s = (si1 *) &fps->file_type_code;
 	generate_hex_string((ui1 *) s, 4, hex_str);
         printf("File Type Code: %s    (", hex_str);
 	for (i = 0; i < 4; ++i)
 		printf(" %c ", *s++);
 	printf(")\n");
-	printf("Raw Data Bytes: %lld\n", fps->raw_data_bytes);
+	#ifdef _WIN32
+		printf("Raw Data Bytes: %lld\n", fps->raw_data_bytes);
+	#else
+		printf("Raw Data Bytes: %ld\n", fps->raw_data_bytes);
+	#endif
 	show_password_data(fps);
 	show_universal_header(fps);
 	if (fps->raw_data_bytes > UNIVERSAL_HEADER_BYTES) {
@@ -7826,7 +7858,11 @@ void	show_metadata(FILE_PROCESSING_STRUCT *fps)
 			if (tmd2->recording_duration == METADATA_RECORDING_DURATION_NO_ENTRY)
 				printf("Recording Duration: no entry\n");
 			else
-				printf("Recording Duration: %lld (microseconds)\n", tmd2->recording_duration);
+				#ifdef _WIN32
+					printf("Recording Duration: %lld (microseconds)\n", tmd2->recording_duration);
+				#else
+					printf("Recording Duration: %ld (microseconds)\n", tmd2->recording_duration);
+				#endif
                         // type-specific fields
 			if (strlen(tmd2->reference_description))
 				UTF8_printf("Reference Description: %s\n", tmd2->reference_description);
@@ -7835,7 +7871,11 @@ void	show_metadata(FILE_PROCESSING_STRUCT *fps)
 			if (tmd2->acquisition_channel_number == TIME_SERIES_METADATA_ACQUISITION_CHANNEL_NUMBER_NO_ENTRY)
 				printf("Acquisition Channel Number: no entry\n");
 			else
-				printf("Acquisition Channel Number: %lld\n", tmd2->acquisition_channel_number);
+				#ifdef _WIN32
+					printf("Acquisition Channel Number: %lld\n", tmd2->acquisition_channel_number);
+				#else
+					printf("Acquisition Channel Number: %ld\n", tmd2->acquisition_channel_number);
+				#endif
 			if (tmd2->sampling_frequency == TIME_SERIES_METADATA_SAMPLING_FREQUENCY_NO_ENTRY)
 				printf("Sampling Frequency: no entry\n");
 			else
@@ -7875,19 +7915,35 @@ void	show_metadata(FILE_PROCESSING_STRUCT *fps)
                         if (tmd2->start_sample == TIME_SERIES_METADATA_START_SAMPLE_NO_ENTRY)
                                 printf("Start Sample: no entry\n");
                         else
-                                printf("Start Sample: %lld\n", tmd2->start_sample);
+                        	#ifdef _WIN32
+					printf("Start Sample: %lld\n", tmd2->start_sample);
+				#else
+					printf("Start Sample: %ld\n", tmd2->start_sample);
+				#endif
                         if (tmd2->number_of_samples == TIME_SERIES_METADATA_NUMBER_OF_SAMPLES_NO_ENTRY)
 				printf("Number of Samples: no entry\n");
 			else
-				printf("Number of Samples: %lld\n", tmd2->number_of_samples);
+				#ifdef _WIN32
+					printf("Number of Samples: %lld\n", tmd2->number_of_samples);
+				#else
+					printf("Number of Samples: %ld\n", tmd2->number_of_samples);
+				#endif
 			if (tmd2->number_of_blocks == TIME_SERIES_METADATA_NUMBER_OF_BLOCKS_NO_ENTRY)
 				printf("Number of Blocks: no entry\n");
 			else
-				printf("Number of Blocks: %lld\n", tmd2->number_of_blocks);
+				#ifdef _WIN32
+					printf("Number of Blocks: %lld\n", tmd2->number_of_blocks);
+				#else
+					printf("Number of Blocks: %ld\n", tmd2->number_of_blocks);
+				#endif
 			if (tmd2->maximum_block_bytes == TIME_SERIES_METADATA_MAXIMUM_BLOCK_BYTES_NO_ENTRY)
 				printf("Maximum Block Bytes: no entry\n");
 			else
-				printf("Maximum Block Bytes: %lld\n", tmd2->maximum_block_bytes);
+				#ifdef _WIN32
+					printf("Maximum Block Bytes: %lld\n", tmd2->maximum_block_bytes);
+				#else
+					printf("Maximum Block Bytes: %ld\n", tmd2->maximum_block_bytes);
+				#endif
 			if (tmd2->maximum_block_samples == TIME_SERIES_METADATA_MAXIMUM_BLOCK_SAMPLES_NO_ENTRY)
 				printf("Maximum Block Samples: no entry\n");
 			else
@@ -7899,23 +7955,43 @@ void	show_metadata(FILE_PROCESSING_STRUCT *fps)
                        if (tmd2->block_interval == TIME_SERIES_METADATA_BLOCK_INTERVAL_NO_ENTRY)
                                 printf("Block Interval: no entry\n");
                         else
-				printf("Block Interval: %lld (microseconds)\n", tmd2->block_interval);
+				#ifdef _WIN32
+					printf("Block Interval: %lld (microseconds)\n", tmd2->block_interval);
+				#else
+					printf("Block Interval: %ld (microseconds)\n", tmd2->block_interval);
+				#endif
 			if (tmd2->number_of_discontinuities == TIME_SERIES_METADATA_NUMBER_OF_DISCONTINUITIES_NO_ENTRY)
 				printf("Number of Discontinuities: no entry\n");
 			else
-				printf("Number of Discontinuities: %lld\n", tmd2->number_of_discontinuities);
+				#ifdef _WIN32
+					printf("Number of Discontinuities: %lld\n", tmd2->number_of_discontinuities);
+				#else
+					printf("Number of Discontinuities: %ld\n", tmd2->number_of_discontinuities);
+				#endif
 			if (tmd2->maximum_contiguous_blocks == TIME_SERIES_METADATA_MAXIMUM_CONTIGUOUS_BLOCKS_NO_ENTRY)
 				printf("Maximum Contiguous Blocks: no entry\n");
 			else
-				printf("Maximum Contiguous Blocks: %lld\n", tmd2->maximum_contiguous_blocks);
+				#ifdef _WIN32
+					printf("Maximum Contiguous Blocks: %lld\n", tmd2->maximum_contiguous_blocks);
+				#else
+					printf("Maximum Contiguous Blocks: %ld\n", tmd2->maximum_contiguous_blocks);
+				#endif
 			if (tmd2->maximum_contiguous_block_bytes == TIME_SERIES_METADATA_MAXIMUM_CONTIGUOUS_BLOCK_BYTES_NO_ENTRY)
 				printf("Maximum Contiguous Block Bytes: no entry\n");
 			else
-				printf("Maximum Contiguous Block Bytes: %lld\n", tmd2->maximum_contiguous_block_bytes);
+				#ifdef _WIN32
+					printf("Maximum Contiguous Block Bytes: %lld\n", tmd2->maximum_contiguous_block_bytes);
+				#else
+					printf("Maximum Contiguous Block Bytes: %ld\n", tmd2->maximum_contiguous_block_bytes);
+				#endif
 			if (tmd2->maximum_contiguous_samples == TIME_SERIES_METADATA_MAXIMUM_CONTIGUOUS_SAMPLES_NO_ENTRY)
                                 printf("Maximum Contiguous Samples: no entry\n");
                         else
-				printf("Maximum Contiguous Samples: %lld\n", tmd2->maximum_contiguous_samples);
+				#ifdef _WIN32
+					printf("Maximum Contiguous Samples: %lld\n", tmd2->maximum_contiguous_samples);
+				#else
+					printf("Maximum Contiguous Samples: %ld\n", tmd2->maximum_contiguous_samples);
+				#endif
 		}
 		else if (fps->file_type_code == VIDEO_METADATA_FILE_TYPE_CODE) {
                         // type-independent fields
@@ -7930,16 +8006,28 @@ void	show_metadata(FILE_PROCESSING_STRUCT *fps)
                        if (vmd2->recording_duration == METADATA_RECORDING_DURATION_NO_ENTRY)
                                 printf("Recording Duration: no entry\n");
                         else
-                                printf("Recording Duration: %lld (microseconds)\n", vmd2->recording_duration);
+                        	#ifdef _WIN32
+					printf("Recording Duration: %lld (microseconds)\n", vmd2->recording_duration);
+				#else
+					printf("Recording Duration: %ld (microseconds)\n", vmd2->recording_duration);
+				#endif
                         // type-specific fields
 			if (vmd2->horizontal_resolution == VIDEO_METADATA_HORIZONTAL_RESOLUTION_NO_ENTRY)
 				printf("Horizontal Resolution: no entry\n");
 			else
-				printf("Horizontal Resolution: %lld\n", vmd2->horizontal_resolution);
+				#ifdef _WIN32
+					printf("Horizontal Resolution: %lld\n", vmd2->horizontal_resolution);
+				#else
+					printf("Horizontal Resolution: %ld\n", vmd2->horizontal_resolution);
+				#endif
 			if (vmd2->vertical_resolution == VIDEO_METADATA_VERTICAL_RESOLUTION_NO_ENTRY)
 				printf("Vertical Resolution: no entry\n");
 			else
-				printf("Vertical Resolution: %lld\n", vmd2->vertical_resolution);
+				#ifdef _WIN32
+					printf("Vertical Resolution: %lld\n", vmd2->vertical_resolution);
+				#else
+					printf("Vertical Resolution: %ld\n", vmd2->vertical_resolution);
+				#endif
                         if (vmd2->frame_rate == VIDEO_METADATA_FRAME_RATE_NO_ENTRY)
 				printf("Frame Rate: no entry\n");
 			else
@@ -7947,11 +8035,19 @@ void	show_metadata(FILE_PROCESSING_STRUCT *fps)
 			if (vmd2->number_of_clips == VIDEO_METADATA_NUMBER_OF_CLIPS_NO_ENTRY)
 				printf("Number of Clips: no entry\n");
 			else
-				printf("Number of Clips: %lld (= number of video indices)\n", vmd2->number_of_clips);
+				#ifdef _WIN32
+					printf("Number of Clips: %lld (= number of video indices)\n", vmd2->number_of_clips);
+				#else
+					printf("Number of Clips: %ld (= number of video indices)\n", vmd2->number_of_clips);
+				#endif
 			if (vmd2->maximum_clip_bytes == VIDEO_METADATA_MAXIMUM_CLIP_BYTES_NO_ENTRY)
 				printf("Maximum Clip Bytes: no entry\n");
 			else
-				printf("Maximum Clip Bytes: %lld\n", vmd2->maximum_clip_bytes);
+				#ifdef _WIN32
+					printf("Maximum Clip Bytes: %lld\n", vmd2->maximum_clip_bytes);
+				#else
+					printf("Maximum Clip Bytes: %ld\n", vmd2->maximum_clip_bytes);
+				#endif
 			if (strlen(vmd2->video_format))
 				UTF8_printf("Video Format: %s\n", vmd2->video_format);
 			else
@@ -7975,15 +8071,27 @@ void	show_metadata(FILE_PROCESSING_STRUCT *fps)
 		if (md3->recording_time_offset == UUTC_NO_ENTRY)
 			printf("Recording Time Offset: no entry\n");
 		else
-			printf("Recording Time Offset: %lld\n", md3->recording_time_offset);
+			#ifdef _WIN32
+				printf("Recording Time Offset: %lld\n", md3->recording_time_offset);
+			#else
+				printf("Recording Time Offset: %ld\n", md3->recording_time_offset);
+			#endif
 		if (md3->DST_start_time == UUTC_NO_ENTRY)
 			printf("DST Start Time: no entry\n");
 		else
-			printf("DST Start Time: %lld\n", md3->DST_start_time);
+			#ifdef _WIN32
+				printf("DST Start Time: %lld\n", md3->DST_start_time);
+			#else
+				printf("DST Start Time: %ld\n", md3->DST_start_time);
+			#endif
 		if (md3->DST_end_time == UUTC_NO_ENTRY)
 			printf("DST End Time: no entry\n");
 		else
-			printf("DST End Time: %lld\n", md3->DST_end_time);
+			#ifdef _WIN32
+				printf("DST End Time: %lld\n", md3->DST_end_time);
+			#else
+				printf("DST End Time: %ld\n", md3->DST_end_time);
+			#endif
 		if (md3->GMT_offset == GMT_OFFSET_NO_ENTRY)
 			printf("GMT: no entry\n");
 		else
@@ -8133,7 +8241,11 @@ void	show_universal_header(FILE_PROCESSING_STRUCT *fps)
 		local_date_time_string(uh->start_time, time_str);
 		if (uh->start_time < 0)
 			printf("Offset ");
-		printf("Start Time: %lld (uUTC), %s (ascii, local)\n", ABS(uh->start_time), time_str);
+		#ifdef _WIN32
+			printf("Start Time: %lld (uUTC), %s (ascii, local)\n", ABS(uh->start_time), time_str);
+		#else
+			printf("Start Time: %ld (uUTC), %s (ascii, local)\n", ABS(uh->start_time), time_str);
+		#endif
 	}
 	if (uh->end_time == UUTC_NO_ENTRY)
 		printf("End Time: no entry\n");
@@ -8141,12 +8253,20 @@ void	show_universal_header(FILE_PROCESSING_STRUCT *fps)
 		local_date_time_string(uh->end_time, time_str);
 		if (uh->start_time < 0)
 			printf("Offset ");
-		printf("End Time: %lld (uUTC), %s (ascii, local)\n", ABS(uh->end_time), time_str);
+		#ifdef _WIN32
+			printf("End Time: %lld (uUTC), %s (ascii, local)\n", ABS(uh->end_time), time_str);
+		#else
+			printf("End Time: %ld (uUTC), %s (ascii, local)\n", ABS(uh->end_time), time_str);
+		#endif
 	}
 	if (uh->number_of_entries == UNIVERSAL_HEADER_NUMBER_OF_ENTRIES_NO_ENTRY)
 		printf("Number of Entries: no entry\n");
 	else {
-		printf("Number of Entries: %lld  ", uh->number_of_entries);
+		#ifdef _WIN32
+			printf("Number of Entries: %lld  ", uh->number_of_entries);
+		#else
+			printf("Number of Entries: %ld  ", uh->number_of_entries);
+		#endif
 		switch (type_code) {
 			case RECORD_DATA_FILE_TYPE_CODE:
 				printf("(number of records in the file)\n");
@@ -8175,7 +8295,11 @@ void	show_universal_header(FILE_PROCESSING_STRUCT *fps)
 	if (uh->maximum_entry_size == UNIVERSAL_HEADER_MAXIMUM_ENTRY_SIZE_NO_ENTRY)
 		printf("Maximum Entry Size: no entry\n");
 	else {
-		printf("Maximum Entry Size: %lld  ", uh->maximum_entry_size);
+		#ifdef _WIN32
+			printf("Maximum Entry Size: %lld  ", uh->maximum_entry_size);
+		#else
+			printf("Maximum Entry Size: %ld  ", uh->maximum_entry_size);
+		#endif
 		switch (type_code) {
 			case RECORD_DATA_FILE_TYPE_CODE:
 				printf("(number of bytes in the largest record in the file)\n");

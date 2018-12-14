@@ -65,7 +65,11 @@ void	show_record(RECORD_HEADER *record_header, ui4 record_number, PASSWORD_DATA 
 		printf("Record Time: no entry\n");
 	else {
 		local_date_time_string(record_header->time, time_str);
-		printf("Record Time: %lld (uUTC), %s (ascii, local)\n", ABS(record_header->time), time_str);
+		#ifdef _WIN32
+			printf("Record Time: %lld (uUTC), %s (ascii, local)\n", ABS(record_header->time), time_str);
+		#else
+			printf("Record Time: %ld (uUTC), %s (ascii, local)\n", ABS(record_header->time), time_str);
+		#endif
 	}
 	printf("----------------- Record Header - END -----------------\n\n");
 
@@ -222,7 +226,11 @@ void	show_mefrec_EDFA_type(RECORD_HEADER *record_header)
 	if (record_header->version_major == 1 && record_header->version_minor == 0) {
 		edfa = (MEFREC_EDFA_1_0 *) ((ui1 *) record_header + MEFREC_EDFA_1_0_OFFSET);
 		annotation = (si1 *) record_header + MEFREC_EDFA_1_0_ANNOTATION_OFFSET;
-		UTF8_printf("Annotation: %s\nDuration %lld microseconds\n", annotation, edfa->duration);
+		#ifdef _WIN32
+			UTF8_printf("Annotation: %s\nDuration %lld microseconds\n", annotation, edfa->duration);
+		#else
+			UTF8_printf("Annotation: %s\nDuration %ld microseconds\n", annotation, edfa->duration);
+		#endif
 	}
 	// Unrecognized record version
 	else {
@@ -361,10 +369,19 @@ void	show_mefrec_Seiz_type(RECORD_HEADER *record_header)
         if (record_header->version_major == 1 && record_header->version_minor == 0) {
                 seizure = (MEFREC_Seiz_1_0 *) ((ui1 *) record_header + MEFREC_Seiz_1_0_OFFSET);
 		local_date_time_string(seizure->earliest_onset, time_str);
-		printf("Earliest Onset: %lld (uUTC), %s (ascii, local)\n", ABS(seizure->earliest_onset), time_str);
+		#ifdef _WIN32
+			printf("Earliest Onset: %lld (uUTC), %s (ascii, local)\n", ABS(seizure->earliest_onset), time_str);
+		#else
+			printf("Earliest Onset: %ld (uUTC), %s (ascii, local)\n", ABS(seizure->earliest_onset), time_str);
+		#endif
 		local_date_time_string(seizure->latest_offset, time_str);
-		printf("Latest Offset: %lld (uUTC), %s (ascii, local)\n", ABS(seizure->latest_offset), time_str);
-		printf("Duration: %lld (microseconds)\n", seizure->duration);
+		#ifdef _WIN32
+			printf("Latest Offset: %lld (uUTC), %s (ascii, local)\n", ABS(seizure->latest_offset), time_str);
+			printf("Duration: %lld (microseconds)\n", seizure->duration);
+		#else
+			printf("Latest Offset: %ld (uUTC), %s (ascii, local)\n", ABS(seizure->latest_offset), time_str);
+			printf("Duration: %ld (microseconds)\n", seizure->duration);
+		#endif
 		printf("Number of Channels: %d\n", seizure->number_of_channels);
 		printf("Onset Code: %d ", seizure->onset_code);
                 switch (seizure->onset_code) {
@@ -413,9 +430,17 @@ void	show_mefrec_Seiz_type(RECORD_HEADER *record_header)
                         else
                                 printf("Channel Name: no entry\n");
                         local_date_time_string(channels[i].onset, time_str);
-                        printf("\tOnset: %lld (uUTC), %s (ascii, local)\n", ABS(channels[i].onset), time_str);
+                        #ifdef _WIN32
+							printf("\tOnset: %lld (uUTC), %s (ascii, local)\n", ABS(channels[i].onset), time_str);
+						#else
+							printf("\tOnset: %ld (uUTC), %s (ascii, local)\n", ABS(channels[i].onset), time_str);
+						#endif
                         local_date_time_string(channels[i].offset, time_str);
-                        printf("\tOffset: %lld (uUTC), %s (ascii, local)\n", ABS(channels[i].offset), time_str);
+                        #ifdef _WIN32
+							printf("\tOffset: %lld (uUTC), %s (ascii, local)\n", ABS(channels[i].offset), time_str);
+						#else
+							printf("\tOffset: %ld (uUTC), %s (ascii, local)\n", ABS(channels[i].offset), time_str);
+						#endif
                 }
         }
         // Unrecognized record version
@@ -543,7 +568,11 @@ void	show_mefrec_CSti_type(RECORD_HEADER *record_header)
                 else
                     	printf("Task type: no_entry\n");
 
-				printf("Duration: %lld (microseconds)\n", cog_stim->stimulus_duration);
+				#ifdef _WIN32
+					printf("Duration: %lld (microseconds)\n", cog_stim->stimulus_duration);
+				#else
+					printf("Duration: %ld (microseconds)\n", cog_stim->stimulus_duration);
+				#endif
 				
                 if (strlen(cog_stim->stimulus_type))
 						UTF8_printf("Stimulation type: %s\n", cog_stim->stimulus_type);
@@ -643,7 +672,11 @@ void	show_mefrec_ESti_type(RECORD_HEADER *record_header)
                                 break;
                 }
                 printf("Frequency: %f (Hz)\n", el_stim->frequency);
-				printf("Pulse width: %lld (microseconds)\n", el_stim->pulse_width);
+				#ifdef _WIN32
+					printf("Pulse width: %lld (microseconds)\n", el_stim->pulse_width);
+				#else
+					printf("Pulse width: %ld (microseconds)\n", el_stim->pulse_width);
+				#endif
 				printf("Operating mode: ");
 				switch(el_stim->mode_code){
 						case MEFREC_ESti_1_0_MODE_NO_ENTRY:
