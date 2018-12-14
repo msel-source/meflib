@@ -3691,7 +3691,11 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	if (fps->fp == NULL && errno == ENOENT) {
 		// A component of the required directory tree does not exist - build it & try again
 		extract_path_parts(fps->full_file_name, path, name, extension);
-		sprintf(command, "mkdir -p \"%s\"", path);
+		#ifdef _WIN32
+			sprintf(command, "if not exist \"%s\" mkdir \"%s\"", path, path);
+		#else
+			sprintf(command, "mkdir -p \"%s\"", path);
+		#endif
 		(void) e_system(command, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 		// system(command);
 		fps->fp = e_fopen(fps->full_file_name, mode, function, line, behavior_on_fail);
