@@ -5451,7 +5451,6 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
             channel->record_data_fps = allocate_file_processing_struct(0, RECORD_DATA_FILE_TYPE_CODE, NULL, NULL, 0);
             if (read_record_data == MEF_FALSE) {
                     channel->record_data_fps->directives.io_bytes = UNIVERSAL_HEADER_BYTES;
-                    channel->record_data_fps->directives.close_file = MEF_FALSE;
             }
             (void) read_MEF_file(channel->record_data_fps, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
             if (channel->record_data_fps == NULL)
@@ -5801,7 +5800,6 @@ SEGMENT	*read_MEF_segment(SEGMENT *segment, si1 *seg_path, si4 channel_type, si1
 		segment->record_data_fps = allocate_file_processing_struct(0, RECORD_DATA_FILE_TYPE_CODE, NULL, NULL, 0);
 		if (read_record_data == MEF_FALSE) {
 			segment->record_data_fps->directives.io_bytes = UNIVERSAL_HEADER_BYTES;
-			segment->record_data_fps->directives.close_file = MEF_FALSE;
 		}
 		(void) read_MEF_file(segment->record_data_fps, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
 		if (segment->record_data_fps == NULL)
@@ -6125,7 +6123,6 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
         session->record_data_fps = allocate_file_processing_struct(0, RECORD_DATA_FILE_TYPE_CODE, NULL, NULL, 0);
         if (read_record_data == MEF_FALSE) {
                 session->record_data_fps->directives.io_bytes = UNIVERSAL_HEADER_BYTES;
-                session->record_data_fps->directives.close_file = MEF_FALSE;
         }
         (void) read_MEF_file(session->record_data_fps, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
         if (session->record_data_fps == NULL)
