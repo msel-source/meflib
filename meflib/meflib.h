@@ -59,6 +59,8 @@
 	#include <fcntl.h>
 	#include <limits.h>
 	#include <malloc.h>  // for alloca()
+
+	#include <stdint.h>
 #else
 	#include <stdlib.h>
 	#include <unistd.h>
@@ -99,6 +101,9 @@
 	typedef double			sf8;
 	typedef long double		sf16;   // NOTE: it often requires an explicit compiler instruction to implement true long floating point math
 						// in gcc and icc: "-Qoption,cpp,--extended_float_type"
+	typedef uint8_t 		u_int8_t;
+	typedef uint16_t 		u_int16_t;
+	typedef uint32_t 		u_int32_t;
 #else
 	typedef char			si1;
 	typedef unsigned char		ui1;
