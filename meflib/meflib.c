@@ -3482,23 +3482,29 @@ void	FILT_mat_multl(void *a, void *b, void *product, si4 outer_dim1, si4 inner_d
 	
 	if ((outer_dim1 == 1) || (inner_dim == 1)) {
 		av = (sf16 *) a;
+		am = NULL;
 		v1 = 1;
 	} else {
 		am = (sf16 **) a;
+		av = NULL;
 		v1 = 0;
 	}
 	if ((outer_dim2 == 1) || (inner_dim == 1)) {
 		bv = (sf16 *) b;
+		bm = NULL;
 		v2 = 1;
 	} else {
 		bm = (sf16 **) b;
+		bv = NULL;
 		v2 = 0;
 	}
 	if ((outer_dim1 == 1) || (outer_dim2 == 1)) {
 		pv = (sf16 *) product;
+		pm = NULL;
 		vp = 1;
 	} else {
 		pm = (sf16 **) product;
+		pv = NULL;
 		vp = 0;
 	}
         
