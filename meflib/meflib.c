@@ -5200,8 +5200,14 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 	channel->maximum_number_of_records = 0;
 	channel->maximum_record_bytes = 0;
 	bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-	channel->earliest_start_time = LONG_MAX;
-	channel->latest_end_time = LONG_MIN;
+
+	#ifdef _WIN32
+		channel->earliest_start_time = LLONG_MAX;
+		channel->latest_end_time = LLONG_MIN;
+	#else
+		channel->earliest_start_time = LONG_MAX;
+		channel->latest_end_time = LONG_MIN;
+	#endif
 	
 	// loop over segments
 	segment_names = generate_file_list(NULL, &n_segments, chan_path, SEGMENT_DIRECTORY_TYPE_STRING);
