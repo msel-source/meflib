@@ -593,6 +593,8 @@ void	*e_realloc(void *ptr, size_t n_bytes, const si1 *function, si4 line, ui4 be
 /**********************************  MEF Structures  ********************************/
 /************************************************************************************/
 
+#pragma pack(1)
+
 // Password Structures
 typedef struct {
         ui1	level_1_encryption_key[ENCRYPTION_KEY_BYTES];
@@ -842,7 +844,7 @@ typedef struct NODE_STRUCT {
 	struct NODE_STRUCT     *prev, *next;
 } NODE;
 
-
+#pragma pack()
 
 /************************************************************************************/
 /**********************************  MEF Prototypes  ********************************/
