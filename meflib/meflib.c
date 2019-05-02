@@ -2379,7 +2379,6 @@ si4	encrypt_records(FILE_PROCESSING_STRUCT *fps)
 	si4	extract_path_parts(si1 *full_file_name, si1 *path, si1 *name, si1 *extension)
 	{
 		si1	*c, *cc, *cwd, temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
-		printf("Full file name %s\n", full_file_name);
 		
 		// check that path starts from root
 	    if (*full_file_name == '/') {
