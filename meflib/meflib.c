@@ -2379,10 +2379,10 @@ si4	encrypt_records(FILE_PROCESSING_STRUCT *fps)
 	si4	extract_path_parts(si1 *full_file_name, si1 *path, si1 *name, si1 *extension)
 	{
 		si1	*c, *cc, *cwd, temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
-		
+		printf("Full file name %s\n", full_file_name);
 		
 		// check that path starts from root
-	        if (*full_file_name == '/') {
+	    if (*full_file_name == '/') {
 			MEF_strncpy(temp_full_file_name, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
 		} else {
 			if (!(MEF_globals->behavior_on_fail & SUPPRESS_ERROR_OUTPUT))
@@ -4005,12 +4005,14 @@ void	free_session(SESSION *session, si4 free_session_structure)
 #ifdef _WIN32
 	si1	**generate_file_list(si1 **file_list, si4 *num_files, si1 *enclosing_directory, si1 *extension)  // can be used to get a directory list also
 	{
-		si4	i, nf;
-		si1	temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
-	    	si1 unique_junk[MEF_FULL_FILE_NAME_BYTES];
-		// si1 *tmp_dir, *unique_file;
-		FILE	*fp;
-		
+
+		si4 i, k, nf;
+		si1 temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
+		si1 unique_junk[MEF_FULL_FILE_NAME_BYTES];
+		FILE *fp;
+        struct stat sb;
+        si4 skip_segment, files_found;
+        si1 temp_path[MEF_FULL_FILE_NAME_BYTES], temp_name[MEF_SEGMENT_BASE_FILE_NAME_BYTES], temp_extension[TYPE_BYTES];
 		
 		// free previous file list
 		if (file_list != NULL) {
@@ -4041,14 +4043,39 @@ void	free_session(SESSION *session, si4 free_session_structure)
 		}
 		
 		// build file list
-		rewind(fp);
-		nf = 0;
-		for (i = 0; i < *num_files; ++i){
-			nf = fscanf(fp, "%s", file_list[i]);
-			if (nf == 0)
-				return 0;
-		}
-		
+
+        rewind(fp);
+        i = 0;
+        files_found = *num_files;
+        for (k = 0; k < files_found; k++)
+        {
+            fscanf(fp, "%s", file_list[i]);
+
+            // check for empty segment situation
+            skip_segment = 0;
+
+            if (!strcmp(extension, SEGMENT_DIRECTORY_TYPE_STRING))
+            {
+                extract_path_parts(file_list[i], temp_path, temp_name, temp_extension);
+                sprintf(temp_str, "%s/%s.tdat", file_list[i], temp_name);
+
+                // get file length
+                stat(temp_str, &sb);
+
+                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
+                {
+                    fscanf(fp, "%s", temp_str);
+                    skip_segment = 1;
+                    (*num_files)--;
+                    // normally calling function will free memeory, but here we have to do
+                    // it since calling function won't know about this entry
+                    free (file_list[*num_files]);
+                }
+            }
+            if (skip_segment == 0)
+                i++;
+        }
+
 		// clean up
 		fclose(fp);
 		sprintf(temp_str, "del %s", unique_junk);
@@ -4059,21 +4086,27 @@ void	free_session(SESSION *session, si4 free_session_structure)
 #else
 	si1	**generate_file_list(si1 **file_list, si4 *num_files, si1 *enclosing_directory, si1 *extension)  // can be used to get a directory list also
 	{
-		si4	i, nf;
-		si1	temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
+		
+		si4 i, k;
+		si1 temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
 		si1 *unique_junk;
-		FILE	*fp;
-		
-		
-		// free previous file list
+		FILE *fp;
+        struct stat sb;
+        si4 skip_segment, files_found;
+        si1 temp_path[MEF_FULL_FILE_NAME_BYTES], temp_name[MEF_SEGMENT_BASE_FILE_NAME_BYTES], temp_extension[TYPE_BYTES];
+
+
+        // free previous file list
+
 		if (file_list != NULL) {
 			for (i = 0; i < *num_files; ++i)
 				free(file_list[i]);
 			free(file_list);
 		}
-		
+
 		// create unique junk file - avoids conflicts when runnig multiple processes which fight for the same file access
 		unique_junk = tmpnam(NULL);
+
 
 		// count
 		sprintf(temp_str, "ls -1d \"%s\"/*.%s > %s 2> /dev/null", enclosing_directory, extension, unique_junk);
@@ -4092,18 +4125,98 @@ void	free_session(SESSION *session, si4 free_session_structure)
 		}
 		
 		// build file list
-		rewind(fp);
-		nf = 0;
-		for (i = 0; i < *num_files; ++i){
-			nf = fscanf(fp, "%s", file_list[i]);
-			if (nf == 0)
-				return 0;
-		}
-		
+        rewind(fp);
+        i = 0;
+        files_found = *num_files;
+        for (k = 0; k < files_found; k++)
+        {
+            fscanf(fp, "%s", file_list[i]);
+
+            // check for empty segment situation
+            skip_segment = 0;
+            if (!strcmp(extension, SEGMENT_DIRECTORY_TYPE_STRING))
+            {
+                extract_path_parts(file_list[i], temp_path, temp_name, temp_extension);
+                sprintf(temp_str, "%s/%s.tdat", file_list[i], temp_name);
+
+                // get file length
+                stat(temp_str, &sb);
+
+                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
+                {
+                    fscanf(fp, "%s", temp_str);
+                    skip_segment = 1;
+                    (*num_files)--;
+
+                    // normally calling function will free memeory, but here we have to do
+                    // it since calling function won't know about this entry
+                    free (file_list[*num_files]);
+                }
+            }
+
+            if (skip_segment == 0)
+                i++;
+        }
+
 		// clean up
 		fclose(fp);
 		sprintf(temp_str, "rm %s",unique_junk);
 		(void) e_system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+
+
+		// si4	i, nf;
+		// si1	temp_str[MEF_FULL_FILE_NAME_BYTES];
+		// si1 *unique_junk;
+		// FILE	*fp;
+		// DIR *dir;
+		// struct dirent *ent;
+		// si1 *ext;
+
+		
+		// // free previous file list
+		// if (file_list != NULL) {
+		// 	for (i = 0; i < *num_files; ++i)
+		// 		free(file_list[i]);
+		// 	free(file_list);
+		// }
+		
+		// if ((dir = opendir(enclosing_directory)) != NULL) {
+		// 	// get the files / directoris with required extension and count
+		// 	*num_files = 0;
+		// 	while ((ent = readdir(dir)) != NULL) {
+		// 		ext = strrchr(ent->d_name,'.') + 1;
+		// 		if((!(!ext) || (ext == ent->d_name)) &&  strcmp(ext, extension) == 0)
+		// 			++(*num_files);
+		//     }
+		// 	// now read again and allocate and build
+		// 	rewinddir(dir);
+		// 	if ( file_list == NULL ){
+		// 		file_list = (si1 **) e_calloc((size_t) *num_files, sizeof(si1 *), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		// 		i = 0;
+		// 		while ((ent = readdir(dir)) != NULL) {
+		// 			ext = strrchr(ent->d_name,'.') + 1;
+		// 			if((!(!ext) || (ext == ent->d_name)) &&  strcmp(ext, extension) == 0){
+		// 				file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+		// 				MEF_strcpy(temp_str, enclosing_directory);
+		// 				if ( ent->d_type == DT_DIR )
+		// 					MEF_strcat(temp_str, "/");
+		// 				MEF_strcat(temp_str, ent->d_name);
+		// 				MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
+		// 				printf("Temp str %s\n", temp_str);
+		// 				memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
+		// 				++i;
+		// 			}
+		// 		}
+		// 	}
+		// 	closedir (dir);
+		// } else {
+		// 	// could not open directory
+		// 	(void) UTF8_fprintf(stderr, "%c\n\t%s() failed to open directory \"%s\"\n", 7, __FUNCTION__, enclosing_directory);
+		// 	return 0;
+		// }
+
+
+		
 		
 		return(file_list);
 	}
