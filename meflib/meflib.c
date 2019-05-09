@@ -5988,8 +5988,8 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 	session->time_series_channels = (CHANNEL *) e_calloc((size_t) n_channels, sizeof(CHANNEL), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 	for (i = 0; i < n_channels; ++i) {
 		(void) read_MEF_channel(session->time_series_channels + i, channel_names[i], TIME_SERIES_CHANNEL_TYPE, password, password_data, read_time_series_data, read_record_data);
-		if (password_data == NULL)
-			password_data = session->time_series_channels[i].segments[0].metadata_fps->password_data;
+		if ((password_data == NULL) && (session->time_series_channels[i].number_of_segments > 0))
+            password_data = session->time_series_channels[i].segments[0].metadata_fps->password_data;
 		free(channel_names[i]);
 	}
 	session->number_of_time_series_channels = n_channels;
