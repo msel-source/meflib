@@ -5751,21 +5751,27 @@ FILE_PROCESSING_STRUCT	*read_MEF_file(FILE_PROCESSING_STRUCT *fps, si1 *file_nam
 			fps->password_data = password_data;
 	}
         
-	// CRCs
-	if (MEF_globals->CRC_mode & (CRC_VALIDATE | CRC_VALIDATE_ON_INPUT)) {
-		if (fps->directives.io_bytes == FPS_FULL_FILE) {
-			CRC_result = CRC_validate(fps->raw_data + UNIVERSAL_HEADER_BYTES, fps->raw_data_bytes - UNIVERSAL_HEADER_BYTES, fps->universal_header->body_CRC);
-			if (CRC_result == MEF_TRUE && MEF_globals->verbose == MEF_TRUE)
-				UTF8_printf("Body CRC is valid in file \"%s\".\n", fps->full_file_name);
-			else
-				UTF8_fprintf(stderr, "Warning: body CRC is invalid in file \"%s\".\n", fps->full_file_name);
-			CRC_result = CRC_validate(fps->raw_data + CRC_BYTES, fps->raw_data_bytes - CRC_BYTES, fps->universal_header->header_CRC);
-			if (CRC_result == MEF_TRUE && MEF_globals->verbose == MEF_TRUE)
-				UTF8_printf("Header CRC is valid in file \"%s\".\n", fps->full_file_name);
-			else
-				UTF8_fprintf(stderr, "Warning: header CRC is invalid in file \"%s\".\n", fps->full_file_name);
-		}
-	}
+    // CRCs
+    if (MEF_globals->CRC_mode & (CRC_VALIDATE | CRC_VALIDATE_ON_INPUT)) {
+        if (fps->directives.io_bytes == FPS_FULL_FILE) {
+            CRC_result = CRC_validate(fps->raw_data + UNIVERSAL_HEADER_BYTES, fps->raw_data_bytes - UNIVERSAL_HEADER_BYTES, fps->universal_header->body_CRC);
+            if (CRC_result == MEF_TRUE)
+            {
+                if (MEF_globals->verbose == MEF_TRUE)
+                    UTF8_printf("Body CRC is valid in file \"%s\".\n", fps->full_file_name);
+            }
+            else
+                UTF8_fprintf(stderr, "Warning: body CRC is invalid in file \"%s\".\n", fps->full_file_name);
+            CRC_result = CRC_validate(fps->raw_data + CRC_BYTES, UNIVERSAL_HEADER_BYTES - CRC_BYTES, fps->universal_header->header_CRC);
+            if (CRC_result == MEF_TRUE)
+            {
+                if (MEF_globals->verbose == MEF_TRUE)
+                    UTF8_printf("Header CRC is valid in file \"%s\".\n", fps->full_file_name);
+            }
+            else
+                UTF8_fprintf(stderr, "Warning: header CRC is invalid in file \"%s\".\n", fps->full_file_name);
+        }
+    }
 	
 	// if just reading UNIVERSAL HEADER (e.g. large files like records or segment data files)
         if (fps->directives.io_bytes == UNIVERSAL_HEADER_BYTES) {
