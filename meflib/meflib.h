@@ -46,9 +46,6 @@
 /************************************************************************************/
 #ifdef _WIN32
 	#define _USE_MATH_DEFINES
-	#define R_OK    4       // Test for read permission
-	#define W_OK    2       // Test for write permission
-	#define F_OK    0       // Test for existence
 
 	#include <stdlib.h>
 	#include <stdio.h>

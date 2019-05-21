@@ -5659,7 +5659,7 @@ FILE_PROCESSING_STRUCT	*read_MEF_file(FILE_PROCESSING_STRUCT *fps, si1 *file_nam
 	si4	allocated_fps, CRC_result;
     void	*data_ptr;
 	
-    if (access(file_name, F_OK) == -1)
+    if (access(file_name, 0) == -1)
 	{
 	   // file doesn't exist
 	   return (NULL);
