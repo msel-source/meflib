@@ -5657,7 +5657,13 @@ FILE_PROCESSING_STRUCT	*read_MEF_file(FILE_PROCESSING_STRUCT *fps, si1 *file_nam
 	si8	i_bytes;
 	ui4 *file_type_string_int;
 	si4	allocated_fps, CRC_result;
-        void	*data_ptr;
+    void	*data_ptr;
+	
+    if (access(file_name, F_OK) == -1)
+	{
+	   // file doesn't exist
+	   return (NULL);
+	}
 	
 	#ifdef _WIN32
         	if (fps->full_file_name != NULL)
