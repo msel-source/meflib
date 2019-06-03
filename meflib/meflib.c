@@ -5917,6 +5917,9 @@ SEGMENT	*read_MEF_segment(SEGMENT *segment, si1 *seg_path, si4 channel_type, si1
 				segment->time_series_data_fps->directives.close_file = MEF_FALSE;
 			}
 			(void) read_MEF_file(segment->time_series_data_fps, full_file_name, password, password_data, NULL, USE_GLOBAL_BEHAVIOR);
+			// update metadata if metadata conflicts with actual data
+			if (segment->metadata_fps->metadata.time_series_section_2->number_of_blocks > segment->time_series_data_fps->universal_header->number_of_entries)
+                                segment->metadata_fps->metadata.time_series_section_2->number_of_blocks = segment->time_series_data_fps->universal_header->number_of_entries;
 			break;
 		case VIDEO_CHANNEL_TYPE:
 			// video channel data is video file
@@ -5935,6 +5938,9 @@ SEGMENT	*read_MEF_segment(SEGMENT *segment, si1 *seg_path, si4 channel_type, si1
 		case TIME_SERIES_CHANNEL_TYPE:
 			MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", segment->path, segment->name, SEGMENT_DIRECTORY_TYPE_STRING, segment->name, TIME_SERIES_INDICES_FILE_TYPE_STRING);
 			segment->time_series_indices_fps = read_MEF_file(NULL, full_file_name, password, password_data, NULL, USE_GLOBAL_BEHAVIOR);
+			// update metadata if metadata conflicts with actual data
+			if (segment->metadata_fps->metadata.time_series_section_2->number_of_blocks > segment->time_series_indices_fps->universal_header->number_of_entries)
+                                segment->metadata_fps->metadata.time_series_section_2->number_of_blocks = segment->time_series_indices_fps->universal_header->number_of_entries;
 			break;
 		case VIDEO_CHANNEL_TYPE:
 			MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", segment->path, segment->name, SEGMENT_DIRECTORY_TYPE_STRING, segment->name, VIDEO_INDICES_FILE_TYPE_STRING);
