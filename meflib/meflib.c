@@ -4104,7 +4104,8 @@ void	free_session(SESSION *session, si4 free_session_structure)
 			*num_files = 0;
 			while ((ent = readdir(dir)) != NULL) {
 				ext = strrchr(ent->d_name,'.') + 1;
-				if((!(!ext) || (ext == ent->d_name)) &&  strcmp(ext, extension) == 0)
+				// if((!(!ext) || (ext == ent->d_name)) &&  strcmp(ext, extension) == 0){
+				if (!((ext == NULL) || (ext == ent->d_name)) &&  (!strcmp(ext, extension)))
 					++(*num_files);
 		    }
 
@@ -4115,15 +4116,18 @@ void	free_session(SESSION *session, si4 free_session_structure)
 				i = 0;
 				while ((ent = readdir(dir)) != NULL) {
 					ext = strrchr(ent->d_name,'.') + 1;
-					if((!(!ext) || (ext == ent->d_name)) &&  strcmp(ext, extension) == 0){
+					// if((!(!ext) || (ext == ent->d_name)) &&  strcmp(ext, extension) == 0){
+					if (!((ext == NULL) || (ext == ent->d_name)) &&  (!strcmp(ext, extension))){
 						file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 						MEF_strcpy(temp_str, enclosing_directory);
-						if ( ent->d_type == DT_DIR )
+						if ( ent->d_type == DT_DIR ){
 							MEF_strcat(temp_str, "/");
-						MEF_strcat(temp_str, ent->d_name);
-						MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
-						memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
-						++i;
+							MEF_strcat(temp_str, ent->d_name);
+							MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
+							printf("\nTemp str %s\n", temp_str);
+							memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
+							++i;
+						}
 					}
 				}
 			}
