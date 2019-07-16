@@ -59,8 +59,8 @@
 	#include <fcntl.h>
 	#include <limits.h>
 	#include <malloc.h>  // for alloca()
-	#include <stdint.h>
 
+	#include <stdint.h>
 #else
 	#include <stdlib.h>
 	#include <unistd.h>
@@ -74,7 +74,6 @@
 	#include <errno.h>
 	#include <fcntl.h>
 	#include <limits.h>
-	#include <dirent.h>
 	//#include <pthread.h>
 #endif
 
