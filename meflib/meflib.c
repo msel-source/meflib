@@ -4089,7 +4089,11 @@ void	free_session(SESSION *session, si4 free_session_structure)
 		si1	temp_str[MEF_FULL_FILE_NAME_BYTES];
 		struct dirent **contents_list;
 		si1 *ext;
-		
+        struct stat sb;
+        si4 skip_segment;
+        si1 temp_path[MEF_FULL_FILE_NAME_BYTES], temp_name[MEF_SEGMENT_BASE_FILE_NAME_BYTES], temp_extension[TYPE_BYTES];
+
+
 		// free previous file list
 		if (file_list != NULL) {
 			for (i = 0; i < *num_files; ++i)
@@ -4137,8 +4141,36 @@ void	free_session(SESSION *session, si4 free_session_structure)
 						MEF_strcat(temp_str, contents_list[n]->d_name);
 						MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
 						memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
-						++i;
+
+						// check for empty segment situation
+			            skip_segment = 0;
+			            if (!strcmp(extension, SEGMENT_DIRECTORY_TYPE_STRING))
+			            {
+			                extract_path_parts(file_list[i], temp_path, temp_name, temp_extension);
+			                sprintf(temp_str, "%s/%s.tdat", file_list[i], temp_name);
+
+			                // Chekf if the channel is time series
+			                extract_path_parts(temp_path, NULL, NULL, temp_extension);
+			                if (!strcmp(temp_extension, TIME_SERIES_CHANNEL_DIRECTORY_TYPE_STRING)){
+
+				                // get file length
+				                stat(temp_str, &sb);
+
+				                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
+				                {
+				                    skip_segment = 1;
+				                    (*num_files)--;
+
+				                    // normally calling function will free memeory, but here we have to do
+				                    // it since calling function won't know about this entry
+				                    free (file_list[*num_files]);
+				                }
+				            }
+			            }
+			            if (skip_segment == 0)
+							++i;
 					}
+
 				}
 				free(contents_list[n]);
 				++n;
