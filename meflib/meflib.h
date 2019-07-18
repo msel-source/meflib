@@ -74,6 +74,7 @@
 	#include <errno.h>
 	#include <fcntl.h>
 	#include <limits.h>
+	#include <dirent.h>
 	//#include <pthread.h>
 #endif
 

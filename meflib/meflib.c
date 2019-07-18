@@ -4085,137 +4085,66 @@ void	free_session(SESSION *session, si4 free_session_structure)
 #else
 	si1	**generate_file_list(si1 **file_list, si4 *num_files, si1 *enclosing_directory, si1 *extension)  // can be used to get a directory list also
 	{
+		si4	i, n_entries, n;
+		si1	temp_str[MEF_FULL_FILE_NAME_BYTES];
+		struct dirent **contents_list;
+		si1 *ext;
 		
-		si4 i, k;
-		si1 temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
-		si1 *unique_junk;
-		FILE *fp;
-        struct stat sb;
-        si4 skip_segment, files_found;
-        si1 temp_path[MEF_FULL_FILE_NAME_BYTES], temp_name[MEF_SEGMENT_BASE_FILE_NAME_BYTES], temp_extension[TYPE_BYTES];
-
-
-        // free previous file list
-
+		// free previous file list
 		if (file_list != NULL) {
 			for (i = 0; i < *num_files; ++i)
 				free(file_list[i]);
 			free(file_list);
 		}
-
-		// create unique junk file - avoids conflicts when runnig multiple processes which fight for the same file access
-		unique_junk = tmpnam(NULL);
-
-
-		// count
-		sprintf(temp_str, "ls -1d \"%s\"/*.%s > %s 2> /dev/null", enclosing_directory, extension, unique_junk);
-		(void) e_system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-		fp = e_fopen(unique_junk, "r", __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 		
+		// get the files / directoris with required extension and count
 		*num_files = 0;
-		while ((fscanf(fp, "%s", temp_str)) != EOF)
-			++(*num_files);
-		
-		// allocate
-		if (file_list == NULL ) {
+		n_entries = scandir(enclosing_directory, &contents_list, NULL, alphasort);
+		n = n_entries;
+
+		if (n < 0){
+       		(void) UTF8_fprintf(stderr, "%c\n\t%s() failed to open directory \"%s\"\n", 7, __FUNCTION__, enclosing_directory);
+			return 0;}
+		n = 0;
+		while (n < n_entries) {
+			
+			ext = strrchr(contents_list[n]->d_name, '.');
+			if (strlen(ext) != 1)
+				ext += 1;
+
+			if (!((ext == NULL) || (ext == contents_list[n]->d_name)) &&  (!strcmp(ext, extension)))
+				++(*num_files);
+			++n;
+	    }
+
+		// now read again and allocate and build
+		n = 0;
+		if ( file_list == NULL ){
 			file_list = (si1 **) e_calloc((size_t) *num_files, sizeof(si1 *), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-			for (i = 0; i < *num_files; ++i)
-				file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+			i = 0;
+
+			while (n < n_entries) {
+				ext = strrchr(contents_list[n]->d_name, '.');
+				if (strlen(ext) != 1)
+					ext += 1;
+
+				if (!((ext == NULL) || (ext == contents_list[n]->d_name)) &&  (!strcmp(ext, extension))){
+					file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+					MEF_strcpy(temp_str, enclosing_directory);
+					
+					if ( contents_list[n]->d_type == DT_DIR ){
+						MEF_strcat(temp_str, "/");
+						MEF_strcat(temp_str, contents_list[n]->d_name);
+						MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
+						memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
+						++i;
+					}
+				}
+				free(contents_list[n]);
+				++n;
+			}
+			free(contents_list);
 		}
-		
-		// build file list
-        rewind(fp);
-        i = 0;
-        files_found = *num_files;
-        for (k = 0; k < files_found; k++)
-        {
-            fscanf(fp, "%s", file_list[i]);
-
-            // check for empty segment situation
-            skip_segment = 0;
-            if (!strcmp(extension, SEGMENT_DIRECTORY_TYPE_STRING))
-            {
-                extract_path_parts(file_list[i], temp_path, temp_name, temp_extension);
-                sprintf(temp_str, "%s/%s.tdat", file_list[i], temp_name);
-
-                // get file length
-                stat(temp_str, &sb);
-
-                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
-                {
-                    fscanf(fp, "%s", temp_str);
-                    skip_segment = 1;
-                    (*num_files)--;
-
-                    // normally calling function will free memeory, but here we have to do
-                    // it since calling function won't know about this entry
-                    free (file_list[*num_files]);
-                }
-            }
-
-            if (skip_segment == 0)
-                i++;
-        }
-
-		// clean up
-		fclose(fp);
-		sprintf(temp_str, "rm %s",unique_junk);
-		(void) e_system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-
-
-		// si4	i, nf;
-		// si1	temp_str[MEF_FULL_FILE_NAME_BYTES];
-		// si1 *unique_junk;
-		// FILE	*fp;
-		// DIR *dir;
-		// struct dirent *ent;
-		// si1 *ext;
-
-		
-		// // free previous file list
-		// if (file_list != NULL) {
-		// 	for (i = 0; i < *num_files; ++i)
-		// 		free(file_list[i]);
-		// 	free(file_list);
-		// }
-		
-		// if ((dir = opendir(enclosing_directory)) != NULL) {
-		// 	// get the files / directoris with required extension and count
-		// 	*num_files = 0;
-		// 	while ((ent = readdir(dir)) != NULL) {
-		// 		ext = strrchr(ent->d_name,'.') + 1;
-		// 		if((!(!ext) || (ext == ent->d_name)) &&  strcmp(ext, extension) == 0)
-		// 			++(*num_files);
-		//     }
-		// 	// now read again and allocate and build
-		// 	rewinddir(dir);
-		// 	if ( file_list == NULL ){
-		// 		file_list = (si1 **) e_calloc((size_t) *num_files, sizeof(si1 *), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-		// 		i = 0;
-		// 		while ((ent = readdir(dir)) != NULL) {
-		// 			ext = strrchr(ent->d_name,'.') + 1;
-		// 			if((!(!ext) || (ext == ent->d_name)) &&  strcmp(ext, extension) == 0){
-		// 				file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-		// 				MEF_strcpy(temp_str, enclosing_directory);
-		// 				if ( ent->d_type == DT_DIR )
-		// 					MEF_strcat(temp_str, "/");
-		// 				MEF_strcat(temp_str, ent->d_name);
-		// 				MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
-		// 				printf("Temp str %s\n", temp_str);
-		// 				memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
-		// 				++i;
-		// 			}
-		// 		}
-		// 	}
-		// 	closedir (dir);
-		// } else {
-		// 	// could not open directory
-		// 	(void) UTF8_fprintf(stderr, "%c\n\t%s() failed to open directory \"%s\"\n", 7, __FUNCTION__, enclosing_directory);
-		// 	return 0;
-		// }
-
-
-		
 		
 		return(file_list);
 	}
