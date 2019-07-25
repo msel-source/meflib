@@ -690,7 +690,9 @@ FILE_PROCESSING_STRUCT	*allocate_file_processing_struct(si8 raw_data_bytes, ui4 
 	}
         
         // set appropriate pointers
-        data_ptr = (ui1 *) fps->raw_data + UNIVERSAL_HEADER_BYTES;
+        data_ptr = NULL;
+		if (fps->raw_data != NULL)
+			data_ptr = (ui1 *)fps->raw_data + UNIVERSAL_HEADER_BYTES;
         switch (file_type_code) {
                 case NO_TYPE_CODE:
                         break;
@@ -5777,7 +5779,9 @@ FILE_PROCESSING_STRUCT	*read_MEF_file(FILE_PROCESSING_STRUCT *fps, si1 *file_nam
 	}
 
 	// cast rest of data
-        data_ptr = (void *) (fps->raw_data + UNIVERSAL_HEADER_BYTES);
+    data_ptr = NULL;
+	if (fps->raw_data != NULL)
+		data_ptr = (ui1 *)fps->raw_data + UNIVERSAL_HEADER_BYTES;
 	switch (fps->file_type_code) {
 		case TIME_SERIES_INDICES_FILE_TYPE_CODE:
 			fps->time_series_indices = (TIME_SERIES_INDEX *) data_ptr;
@@ -6336,7 +6340,10 @@ si4	reallocate_file_processing_struct(FILE_PROCESSING_STRUCT *fps, si8 raw_data_
 		return(0);
         
 	// set appropriate pointers
-	data_ptr = (void *) (fps->raw_data + UNIVERSAL_HEADER_BYTES);
+	data_ptr = NULL;
+	if (fps->raw_data != NULL)
+		data_ptr = (ui1 *)fps->raw_data + UNIVERSAL_HEADER_BYTES;
+
         switch (fps->file_type_code) {
                 case NO_TYPE_CODE:
                         break;
