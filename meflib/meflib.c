@@ -4004,83 +4004,110 @@ void	free_session(SESSION *session, si4 free_session_structure)
 #ifdef _WIN32
 	si1	**generate_file_list(si1 **file_list, si4 *num_files, si1 *enclosing_directory, si1 *extension)  // can be used to get a directory list also
 	{
-
-		si4 i, k, nf;
-		si1 temp_str[MEF_FULL_FILE_NAME_BYTES + 20];
-		si1 unique_junk[MEF_FULL_FILE_NAME_BYTES];
-		FILE *fp;
-        struct stat sb;
-        si4 skip_segment, files_found;
+		si4 i;
+		si1 temp_str[MEF_FULL_FILE_NAME_BYTES];
+		si1 *ext;
+        struct _stat sb;
+        si4 skip_segment;
         si1 temp_path[MEF_FULL_FILE_NAME_BYTES], temp_name[MEF_SEGMENT_BASE_FILE_NAME_BYTES], temp_extension[TYPE_BYTES];
-		
-		// free previous file list
+
+		// Windows structures
+        WIN32_FIND_DATA fdFile; 
+	    HANDLE hFind = NULL; 
+
+	    // free previous file list
 		if (file_list != NULL) {
 			for (i = 0; i < *num_files; ++i)
 				free(file_list[i]);
 			free(file_list);
 		}
-		
-		// create unique junk file - avoids conflicts when runnig multiple processes which fight for the same file access
-		strcpy(unique_junk, getenv("USERPROFILE"));
-		strcat(unique_junk,"\\junk");
-		// unique_file = tmpnam(NULL);
-	    	//strcat(unique_junk, unique_file);
 
-		// count
-		sprintf(temp_str, "dir /s /b \"%s\\*.%s\" > \"%s\"", enclosing_directory, extension, unique_junk);
-		(void) system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-		fp = e_fopen(unique_junk, "r", __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-		*num_files = 0;
-		while ((fscanf(fp, "%s", temp_str)) != EOF)
-			++(*num_files);
-		
-		// allocate
-		if (file_list == NULL ) {
+	    // get the files / directoris with required extension and count by building a mask
+	    *num_files = 0;
+	    sprintf(temp_path, "%s\\*.*", enclosing_directory); 
+	    if((hFind = FindFirstFile(temp_path, &fdFile)) == INVALID_HANDLE_VALUE) 
+	    { 
+	        (void) UTF8_fprintf(stderr, "%c\n\t%s() failed to open directory \"%s\"\n", 7, __FUNCTION__, enclosing_directory);
+			return 0;
+	    } 
+
+	    while (FindNextFile(hFind, &fdFile)){
+	    	//Skip initial "." and ".." directories
+	        if((strcmp((si1 *) fdFile.cFileName, ".") != 0) && (strcmp((si1 *)fdFile.cFileName, "..") != 0))
+	        { 
+	        	sprintf(temp_path, "%s\\%s", enclosing_directory, (si1 *) fdFile.cFileName); 
+
+	        	// Get extension
+	        	ext = strrchr((si1 *) fdFile.cFileName, '.') + 1;
+
+	        	if (!((ext == NULL) || (ext == (si1 *) fdFile.cFileName)) &&  (!strcmp(ext, extension)))
+					++(*num_files);
+	        }
+	    }
+
+	    // now read again and allocate and build
+	    sprintf(temp_path, "%s\\*.*", enclosing_directory);
+		hFind = FindFirstFile(temp_path, &fdFile);
+		if ( file_list == NULL ){
 			file_list = (si1 **) e_calloc((size_t) *num_files, sizeof(si1 *), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-			for (i = 0; i < *num_files; ++i)
-				file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+			i = 0;
+			while (FindNextFile(hFind, &fdFile)) {
+				// Get extension
+
+				if((strcmp((si1 *) fdFile.cFileName, ".") != 0) && (strcmp((si1 *)fdFile.cFileName, "..") != 0)){
+
+					ext = strrchr((si1 *) fdFile.cFileName, '.') + 1;
+
+					if (!((ext == NULL) || (ext == (si1 *) fdFile.cFileName)) &&  (!strcmp(ext, extension))){
+						
+						file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+						
+						MEF_strcpy(temp_str, enclosing_directory);
+						
+						if ( fdFile.dwFileAttributes &FILE_ATTRIBUTE_DIRECTORY ){
+							MEF_strcat(temp_str, "/");
+							MEF_strcat(temp_str, (si1 *) fdFile.cFileName);
+							MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
+							memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
+
+							// check for empty segment situation
+				            skip_segment = 0;
+				            if (!strcmp(extension, SEGMENT_DIRECTORY_TYPE_STRING))
+				            {
+
+				                extract_path_parts(file_list[i], temp_path, temp_name, temp_extension);
+				                sprintf(temp_str, "%s/%s.tdat", file_list[i], temp_name);
+
+				                // Chekf if the channel is time series
+				                extract_path_parts(temp_path, NULL, NULL, temp_extension);
+				                if (!strcmp(temp_extension, TIME_SERIES_CHANNEL_DIRECTORY_TYPE_STRING)){
+
+					                // get file length
+					                _stat(temp_str, &sb);
+
+					                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
+					                {
+					                    skip_segment = 1;
+					                    (*num_files)--;
+
+					                    // normally calling function will free memeory, but here we have to do
+					                    // it since calling function won't know about this entry
+					                    free (file_list[*num_files]);
+					                }
+					            }
+				            }
+				            if (skip_segment == 0)
+								++i;
+						}
+					}
+				}
+			}
 		}
-		
-		// build file list
-
-        rewind(fp);
-        i = 0;
-        files_found = *num_files;
-        for (k = 0; k < files_found; k++)
-        {
-            fscanf(fp, "%s", file_list[i]);
-
-            // check for empty segment situation
-            skip_segment = 0;
-
-            if (!strcmp(extension, SEGMENT_DIRECTORY_TYPE_STRING))
-            {
-                extract_path_parts(file_list[i], temp_path, temp_name, temp_extension);
-                sprintf(temp_str, "%s/%s.tdat", file_list[i], temp_name);
-
-                // get file length
-                stat(temp_str, &sb);
-
-                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
-                {
-                    fscanf(fp, "%s", temp_str);
-                    skip_segment = 1;
-                    (*num_files)--;
-                    // normally calling function will free memeory, but here we have to do
-                    // it since calling function won't know about this entry
-                    free (file_list[*num_files]);
-                }
-            }
-            if (skip_segment == 0)
-                i++;
-        }
 
 		// clean up
-		fclose(fp);
-		sprintf(temp_str, "del %s", unique_junk);
-		(void) e_system(temp_str, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-		
-		return(file_list);
+	    FindClose(hFind);
+
+	    return(file_list);
 	}
 #else
 	si1	**generate_file_list(si1 **file_list, si4 *num_files, si1 *enclosing_directory, si1 *extension)  // can be used to get a directory list also
@@ -4112,6 +4139,7 @@ void	free_session(SESSION *session, si4 free_session_structure)
 		n = 0;
 		while (n < n_entries) {
 			
+			// Get extension
 			ext = strrchr(contents_list[n]->d_name, '.');
 			if (strlen(ext) != 1)
 				ext += 1;
