@@ -59,8 +59,9 @@
 	#include <fcntl.h>
 	#include <limits.h>
 	#include <malloc.h>  // for alloca()
-
 	#include <stdint.h>
+	#include <windows.h>
+
 #else
 	#include <stdlib.h>
 	#include <unistd.h>
