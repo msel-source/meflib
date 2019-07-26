@@ -4006,7 +4006,7 @@ void	free_session(SESSION *session, si4 free_session_structure)
 #ifdef _WIN32
 	si1	**generate_file_list(si1 **file_list, si4 *num_files, si1 *enclosing_directory, si1 *extension)  // can be used to get a directory list also
 	{
-		si4 i;
+		si4 i, j;
 		si1 temp_str[MEF_FULL_FILE_NAME_BYTES];
 		si1 *ext;
         struct _stat sb;
@@ -4108,6 +4108,17 @@ void	free_session(SESSION *session, si4 free_session_structure)
 
 		// clean up
 	    FindClose(hFind);
+
+	    // Finally sort file_list alphabetically
+		for(i = 0; i <= *num_files; ++i){
+			for(j = i+1; j <= *num_files - 1; ++j){
+			  	if(strcmp(file_list[i], file_list[j])>0){
+			        strcpy(temp_str, file_list[i]);
+			        strcpy(file_list[i], file_list[j]);
+			        strcpy(file_list[j], temp_str);
+			    }
+			}
+		}
 
 	    return(file_list);
 	}
