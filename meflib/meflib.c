@@ -4066,41 +4066,41 @@ void	free_session(SESSION *session, si4 free_session_structure)
 						
 						MEF_strcpy(temp_str, enclosing_directory);
 						
-						if ( fdFile.dwFileAttributes &FILE_ATTRIBUTE_DIRECTORY ){
+						if ( fdFile.dwFileAttributes &FILE_ATTRIBUTE_DIRECTORY )
 							MEF_strcat(temp_str, "/");
-							MEF_strcat(temp_str, (si1 *) fdFile.cFileName);
-							MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
-							memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
 
-							// check for empty segment situation
-				            skip_segment = 0;
-				            if (!strcmp(extension, SEGMENT_DIRECTORY_TYPE_STRING))
-				            {
+						MEF_strcat(temp_str, (si1 *) fdFile.cFileName);
+						MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
+						memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
 
-				                extract_path_parts(file_list[i], temp_path, temp_name, temp_extension);
-				                sprintf(temp_str, "%s/%s.tdat", file_list[i], temp_name);
+						// check for empty segment situation
+			            skip_segment = 0;
+			            if (!strcmp(extension, SEGMENT_DIRECTORY_TYPE_STRING))
+			            {
 
-				                // Chekf if the channel is time series
-				                extract_path_parts(temp_path, NULL, NULL, temp_extension);
-				                if (!strcmp(temp_extension, TIME_SERIES_CHANNEL_DIRECTORY_TYPE_STRING)){
+			                extract_path_parts(file_list[i], temp_path, temp_name, temp_extension);
+			                sprintf(temp_str, "%s/%s.tdat", file_list[i], temp_name);
 
-					                // get file length
-					                _stat(temp_str, &sb);
+			                // Chekf if the channel is time series
+			                extract_path_parts(temp_path, NULL, NULL, temp_extension);
+			                if (!strcmp(temp_extension, TIME_SERIES_CHANNEL_DIRECTORY_TYPE_STRING)){
 
-					                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
-					                {
-					                    skip_segment = 1;
-					                    (*num_files)--;
+				                // get file length
+				                _stat(temp_str, &sb);
 
-					                    // normally calling function will free memeory, but here we have to do
-					                    // it since calling function won't know about this entry
-					                    free (file_list[*num_files]);
-					                }
-					            }
+				                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
+				                {
+				                    skip_segment = 1;
+				                    (*num_files)--;
+
+				                    // normally calling function will free memeory, but here we have to do
+				                    // it since calling function won't know about this entry
+				                    free (file_list[*num_files]);
+				                }
 				            }
-				            if (skip_segment == 0)
-								++i;
-						}
+			            }
+			            if (skip_segment == 0)
+							++i;
 					}
 				}
 			}
@@ -4177,41 +4177,40 @@ void	free_session(SESSION *session, si4 free_session_structure)
 					file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 					MEF_strcpy(temp_str, enclosing_directory);
 					
-					if ( contents_list[n]->d_type == DT_DIR ){
+					if ( contents_list[n]->d_type == DT_DIR )
 						MEF_strcat(temp_str, "/");
-						MEF_strcat(temp_str, contents_list[n]->d_name);
-						MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
-						memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
 
-						// check for empty segment situation
-			            skip_segment = 0;
-			            if (!strcmp(extension, SEGMENT_DIRECTORY_TYPE_STRING))
-			            {
-			                extract_path_parts(file_list[i], temp_path, temp_name, temp_extension);
-			                sprintf(temp_str, "%s/%s.tdat", file_list[i], temp_name);
+					MEF_strcat(temp_str, contents_list[n]->d_name);
+					MEF_strncpy(file_list[i], temp_str, MEF_FULL_FILE_NAME_BYTES);
+					memset(temp_str, 0, MEF_FULL_FILE_NAME_BYTES);
 
-			                // Chekf if the channel is time series
-			                extract_path_parts(temp_path, NULL, NULL, temp_extension);
-			                if (!strcmp(temp_extension, TIME_SERIES_CHANNEL_DIRECTORY_TYPE_STRING)){
+					// check for empty segment situation
+		            skip_segment = 0;
+		            if (!strcmp(extension, SEGMENT_DIRECTORY_TYPE_STRING))
+		            {
+		                extract_path_parts(file_list[i], temp_path, temp_name, temp_extension);
+		                sprintf(temp_str, "%s/%s.tdat", file_list[i], temp_name);
 
-				                // get file length
-				                stat(temp_str, &sb);
+		                // Chekf if the channel is time series
+		                extract_path_parts(temp_path, NULL, NULL, temp_extension);
+		                if (!strcmp(temp_extension, TIME_SERIES_CHANNEL_DIRECTORY_TYPE_STRING)){
 
-				                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
-				                {
-				                    skip_segment = 1;
-				                    (*num_files)--;
+			                // get file length
+			                stat(temp_str, &sb);
 
-				                    // normally calling function will free memeory, but here we have to do
-				                    // it since calling function won't know about this entry
-				                    free (file_list[*num_files]);
-				                }
-				            }
+			                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
+			                {
+			                    skip_segment = 1;
+			                    (*num_files)--;
+
+			                    // normally calling function will free memeory, but here we have to do
+			                    // it since calling function won't know about this entry
+			                    free (file_list[*num_files]);
+			                }
 			            }
-			            if (skip_segment == 0)
-							++i;
-					}
-
+		            }
+		            if (skip_segment == 0)
+						++i;
 				}
 				free(contents_list[n]);
 				++n;
