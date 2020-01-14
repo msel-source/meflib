@@ -2321,21 +2321,7 @@ si4	encrypt_records(FILE_PROCESSING_STRUCT *fps)
 		si1	*c, *cc, *cwd, temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
 		
 	    slash_to_backslash(full_file_name);
-
-		// check that path starts from root
-	    if ((*full_file_name == 'c') | (*full_file_name == 'C')) {
-			MEF_strncpy(temp_full_file_name, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
-		} else {
-			if (!(MEF_globals->behavior_on_fail & SUPPRESS_ERROR_OUTPUT))
-				(void) fprintf(stderr, "%s() Warning: path \"%s\" does not start from root => prepending current working directory\n", __FUNCTION__, full_file_name);
-			cwd = getenv("PWD");
-			c = full_file_name;
-			if (*c == '.' && *(c + 1) != '.')
-				++c;
-			if (*c == '/')
-				++c;
-			MEF_snprintf(temp_full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s\\%s", cwd, c);
-		}
+		MEF_strncpy(temp_full_file_name, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
 		
 		// move pointer to end of string
 		c = temp_full_file_name + strlen(temp_full_file_name) - 1;
