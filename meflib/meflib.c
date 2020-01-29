@@ -5987,9 +5987,14 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 	session->maximum_number_of_records = 0;
 	session->maximum_record_bytes = 0;
 	bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-	session->earliest_start_time = LONG_MAX;
-	session->latest_end_time = LONG_MIN;
-        
+	#ifdef _WIN32
+		session->earliest_start_time = LLONG_MAX;
+		session->latest_end_time = LLONG_MIN;
+	#else
+		session->earliest_start_time = LONG_MAX;
+		session->latest_end_time = LONG_MIN;
+	#endif
+	
 	// loop over time series channels
 	channel_names = generate_file_list(NULL, &n_channels, sess_path, TIME_SERIES_CHANNEL_DIRECTORY_TYPE_STRING);
 	session->time_series_channels = (CHANNEL *) e_calloc((size_t) n_channels, sizeof(CHANNEL), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
