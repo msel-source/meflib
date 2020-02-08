@@ -2321,21 +2321,7 @@ si4	encrypt_records(FILE_PROCESSING_STRUCT *fps)
 		si1	*c, *cc, *cwd, temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
 		
 	    slash_to_backslash(full_file_name);
-
-		// check that path starts from root
-	    if ((*full_file_name == 'c') | (*full_file_name == 'C')) {
-			MEF_strncpy(temp_full_file_name, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
-		} else {
-			if (!(MEF_globals->behavior_on_fail & SUPPRESS_ERROR_OUTPUT))
-				(void) fprintf(stderr, "%s() Warning: path \"%s\" does not start from root => prepending current working directory\n", __FUNCTION__, full_file_name);
-			cwd = getenv("PWD");
-			c = full_file_name;
-			if (*c == '.' && *(c + 1) != '.')
-				++c;
-			if (*c == '/')
-				++c;
-			MEF_snprintf(temp_full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s\\%s", cwd, c);
-		}
+		MEF_strncpy(temp_full_file_name, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
 		
 		// move pointer to end of string
 		c = temp_full_file_name + strlen(temp_full_file_name) - 1;
@@ -4040,8 +4026,10 @@ void	free_session(SESSION *session, si4 free_session_structure)
 	        	sprintf(temp_path, "%s\\%s", enclosing_directory, (si1 *) fdFile.cFileName); 
 
 	        	// Get extension
-	        	ext = strrchr((si1 *) fdFile.cFileName, '.') + 1;
-
+	        	ext = strrchr((si1 *) fdFile.cFileName, '.');
+				if (ext != NULL && strlen(ext) != 1)
+					ext++;
+				
 	        	if (!((ext == NULL) || (ext == (si1 *) fdFile.cFileName)) &&  (!strcmp(ext, extension)))
 					++(*num_files);
 	        }
@@ -4058,8 +4046,10 @@ void	free_session(SESSION *session, si4 free_session_structure)
 
 				if((strcmp((si1 *) fdFile.cFileName, ".") != 0) && (strcmp((si1 *)fdFile.cFileName, "..") != 0)){
 
-					ext = strrchr((si1 *) fdFile.cFileName, '.') + 1;
-
+					ext = strrchr((si1 *) fdFile.cFileName, '.');
+					if (ext != NULL && strlen(ext) != 1)
+						ext++;
+					
 					if (!((ext == NULL) || (ext == (si1 *) fdFile.cFileName)) &&  (!strcmp(ext, extension))){
 						
 						file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
@@ -4154,9 +4144,9 @@ void	free_session(SESSION *session, si4 free_session_structure)
 			
 			// Get extension
 			ext = strrchr(contents_list[n]->d_name, '.');
-			if (strlen(ext) != 1)
-				ext += 1;
-
+			if (ext != NULL && strlen(ext) != 1)
+				ext++;
+			
 			if (!((ext == NULL) || (ext == contents_list[n]->d_name)) &&  (!strcmp(ext, extension)))
 				++(*num_files);
 			++n;
@@ -4170,9 +4160,9 @@ void	free_session(SESSION *session, si4 free_session_structure)
 
 			while (n < n_entries) {
 				ext = strrchr(contents_list[n]->d_name, '.');
-				if (strlen(ext) != 1)
-					ext += 1;
-
+				if (ext != NULL && strlen(ext) != 1)
+					ext++;
+				
 				if (!((ext == NULL) || (ext == contents_list[n]->d_name)) &&  (!strcmp(ext, extension))){
 					file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 					MEF_strcpy(temp_str, enclosing_directory);
@@ -6001,9 +5991,14 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 	session->maximum_number_of_records = 0;
 	session->maximum_record_bytes = 0;
 	bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-	session->earliest_start_time = LONG_MAX;
-	session->latest_end_time = LONG_MIN;
-        
+	#ifdef _WIN32
+		session->earliest_start_time = LLONG_MAX;
+		session->latest_end_time = LLONG_MIN;
+	#else
+		session->earliest_start_time = LONG_MAX;
+		session->latest_end_time = LONG_MIN;
+	#endif
+	
 	// loop over time series channels
 	channel_names = generate_file_list(NULL, &n_channels, sess_path, TIME_SERIES_CHANNEL_DIRECTORY_TYPE_STRING);
 	session->time_series_channels = (CHANNEL *) e_calloc((size_t) n_channels, sizeof(CHANNEL), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
