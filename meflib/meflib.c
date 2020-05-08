@@ -4035,6 +4035,9 @@ void	free_session(SESSION *session, si4 free_session_structure)
 	        }
 	    }
 
+		// clean up
+	    FindClose(hFind);
+		
 	    // now read again and allocate and build
 	    sprintf(temp_path, "%s\\*.*", enclosing_directory);
 		hFind = FindFirstFile(temp_path, &fdFile);
@@ -5567,7 +5570,7 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 			if (strcmp(smd3->recording_location, cmd3->recording_location))
 				bzero(cmd3->recording_location, METADATA_RECORDING_LOCATION_BYTES);
 			if (memcmp(smd3->protected_region, smd3->protected_region, METADATA_SECTION_3_PROTECTED_REGION_BYTES))
-				bzero(ctmd->protected_region, METADATA_SECTION_3_PROTECTED_REGION_BYTES);
+				bzero(cmd3->protected_region, METADATA_SECTION_3_PROTECTED_REGION_BYTES);
 			if (memcmp(smd3->discretionary_region, cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES))
 				bzero(cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES);
                 }
@@ -6265,7 +6268,7 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 		if (strcmp(smd3->recording_location, cmd3->recording_location))
 			bzero(smd3->recording_location, METADATA_RECORDING_LOCATION_BYTES);
 		if (memcmp(smd3->protected_region, smd3->protected_region, METADATA_SECTION_3_PROTECTED_REGION_BYTES))
-			bzero(stmd->protected_region, METADATA_SECTION_3_PROTECTED_REGION_BYTES);
+			bzero(smd3->protected_region, METADATA_SECTION_3_PROTECTED_REGION_BYTES);
 		if (memcmp(smd3->discretionary_region, cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES))
 			bzero(smd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES);
 	}
