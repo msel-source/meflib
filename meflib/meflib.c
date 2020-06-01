@@ -3727,10 +3727,13 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 			exit(1);
 	}
 	
-	// get file descriptor
-	fps->fd = fileno(fps->fp);
-	
-	#ifndef _WIN32
+	#ifdef _WIN32
+		// get file descriptor
+		fps->fd = _fileno(fps->fp);
+    #else
+		// get file descriptor
+		fps->fd = fileno(fps->fp);
+		
 		// lock
 		if (fps->directives.lock_mode != FPS_NO_LOCK_MODE) {
 			lock_type = FPS_NO_LOCK_TYPE;
