@@ -6616,8 +6616,11 @@ void 	RED_decode(RED_PROCESSING_STRUCT *rps)
 	} else if (block_header->flags & RED_LEVEL_2_ENCRYPTION_MASK) {
 		rps->directives.encryption_level = LEVEL_2_ENCRYPTION;
 		key = rps->password_data->level_2_encryption_key;
-	} else
+	} else {
 		rps->directives.encryption_level = NO_ENCRYPTION;
+		key = NULL;
+	}
+	
 	if (rps->directives.encryption_level > NO_ENCRYPTION) {
 		if (rps->password_data->access_level >= rps->directives.encryption_level) {
 			AES_decrypt(block_header->statistics, block_header->statistics, NULL, key);
