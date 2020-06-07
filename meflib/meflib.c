@@ -3727,10 +3727,13 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 			exit(1);
 	}
 	
-	// get file descriptor
-	fps->fd = fileno(fps->fp);
-	
-	#ifndef _WIN32
+	#ifdef _WIN32
+		// get file descriptor
+		fps->fd = _fileno(fps->fp);
+    #else
+		// get file descriptor
+		fps->fd = fileno(fps->fp);
+		
 		// lock
 		if (fps->directives.lock_mode != FPS_NO_LOCK_MODE) {
 			lock_type = FPS_NO_LOCK_TYPE;
@@ -6613,8 +6616,11 @@ void 	RED_decode(RED_PROCESSING_STRUCT *rps)
 	} else if (block_header->flags & RED_LEVEL_2_ENCRYPTION_MASK) {
 		rps->directives.encryption_level = LEVEL_2_ENCRYPTION;
 		key = rps->password_data->level_2_encryption_key;
-	} else
+	} else {
 		rps->directives.encryption_level = NO_ENCRYPTION;
+		key = NULL;
+	}
+	
 	if (rps->directives.encryption_level > NO_ENCRYPTION) {
 		if (rps->password_data->access_level >= rps->directives.encryption_level) {
 			AES_decrypt(block_header->statistics, block_header->statistics, NULL, key);
