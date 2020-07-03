@@ -115,6 +115,12 @@ void	show_record(RECORD_HEADER *record_header, ui4 record_number, PASSWORD_DATA 
 		case MEFREC_CSti_TYPE_CODE:
 			show_mefrec_CSti_type(record_header);
 			break;
+        case MEFREC_Curs_TYPE_CODE:
+            show_mefrec_Curs_type(record_header);
+            break;
+        case MEFREC_Epoc_TYPE_CODE:
+            show_mefrec_Epoc_type(record_header);
+            break;
 		case MEFREC_UnRc_TYPE_CODE:
 			printf("\"%s\" (0x%x) is an unrecognized record type\n", record_header->type_string, type_code);
 			break;
@@ -770,6 +776,201 @@ si4	check_mefrec_ESti_type_alignment(ui1 *bytes)
 	(void) fprintf(stderr, "%c%s(): MEFREC_Esti_1_0 structure is not aligned\n", 7, __FUNCTION__);
         
         return(MEF_FALSE);
+}
+
+/*************************************************************************************/
+
+
+
+/********************************   Curs: Cursor   ******************************/
+
+void	show_mefrec_Curs_type(RECORD_HEADER *record_header)
+{
+    MEFREC_Curs_1_0	*cursor;
+    si1	time_str[TIME_STRING_BYTES];
+    
+    // Version 1.0
+    if (record_header->version_major == 1 && record_header->version_minor == 0) {
+        cursor = (MEFREC_Curs_1_0 *) ((ui1 *) record_header + MEFREC_Curs_1_0_OFFSET);
+        
+#ifdef _WIN32
+        printf("ID number: %lld\n", cursor->id_number);
+#else
+        printf("ID number: %ld\n", cursor->id_number);
+#endif
+        local_date_time_string(cursor->timestamp, time_str);
+#ifdef _WIN32
+        printf("Timestamp: %lld (uUTC), %s (ascii, local)\n", ABS(cursor->timestamp), time_str);
+#else
+        printf("Timestamp: %ld (uUTC), %s (ascii, local)\n", ABS(cursor->timestamp), time_str);
+#endif
+#ifdef _WIN32
+        printf("Latency: %lld (microseconds)\n", cursor->latency);
+#else
+        printf("Latency: %ld (microseconds)\n", cursor->latency);
+#endif
+        printf("Value: %f\n", cursor->value);
+        printf("Name: %s\n", cursor->name);
+    }
+    // Unrecognized record version
+    else {
+        printf("Unrecognized Cursor version\n");
+    }
+    
+    return;
+}
+
+
+si4	check_mefrec_Curs_type_alignment(ui1 *bytes)
+{
+    
+    MEFREC_Curs_1_0		*cursor;
+    si4			free_flag = MEF_FALSE;
+    extern MEF_GLOBALS	*MEF_globals;
+    
+    
+    // check overall sizes
+    if (sizeof(MEFREC_Curs_1_0) != MEFREC_Curs_1_0_BYTES)
+        goto MEFREC_Curs_1_0_NOT_ALIGNED;
+    
+    // check fields - base structure
+    if (bytes == NULL) {
+        bytes = (ui1 *) e_malloc(LARGEST_RECORD_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+        free_flag = MEF_TRUE;
+    }
+    cursor = (MEFREC_Curs_1_0 *) (bytes + MEFREC_Curs_1_0_OFFSET);
+    if (&cursor->id_number != (si8 *) (bytes + MEFREC_Curs_1_0_ID_NUMBER_OFFSET))
+        goto MEFREC_Curs_1_0_NOT_ALIGNED;
+    if (&cursor->timestamp != (si8 *) (bytes + MEFREC_Curs_1_0_TIMESTAMP_OFFSET))
+        goto MEFREC_Curs_1_0_NOT_ALIGNED;
+    if (&cursor->latency != (si8 *) (bytes + MEFREC_Curs_1_0_LATENCY_OFFSET))
+        goto MEFREC_Curs_1_0_NOT_ALIGNED;
+    if (&cursor->value != (sf8 *) (bytes + MEFREC_Curs_1_0_VALUE_OFFSET))
+        goto MEFREC_Curs_1_0_NOT_ALIGNED;
+    if (cursor->name != (si1 *) (bytes + MEFREC_Curs_1_0_NAME_OFFSET))
+        goto MEFREC_Curs_1_0_NOT_ALIGNED;
+    
+    // aligned
+    if (free_flag == MEF_TRUE)
+        free(bytes);
+    
+    if (MEF_globals->verbose == MEF_TRUE)
+        (void) printf("%s(): MEFREC_Curs_1_0 structure is aligned\n", __FUNCTION__);
+    
+    return(MEF_TRUE);
+    
+    // not aligned
+MEFREC_Curs_1_0_NOT_ALIGNED:
+    
+    if (free_flag == MEF_TRUE)
+        free(bytes);
+    
+    (void) fprintf(stderr, "%c%s(): MEFREC_Curs_1_0 structure is not aligned\n", 7, __FUNCTION__);
+    
+    return(MEF_FALSE);
+    
+}
+
+/*************************************************************************************/
+
+        
+
+/********************************   Epoc: Epoch   ******************************/
+
+void	show_mefrec_Epoc_type(RECORD_HEADER *record_header)
+{
+    MEFREC_Epoc_1_0	*epoch;
+    si1	time_str[TIME_STRING_BYTES];
+    
+    // Version 1.0
+    if (record_header->version_major == 1 && record_header->version_minor == 0) {
+        epoch = (MEFREC_Epoc_1_0 *) ((ui1 *) record_header + MEFREC_Epoc_1_0_OFFSET);
+        
+        
+#ifdef _WIN32
+        printf("ID number: %lld\n", epoch->id_number);
+#else
+        printf("ID number: %ld\n", epoch->id_number);
+#endif
+        local_date_time_string(epoch->timestamp, time_str);
+#ifdef _WIN32
+        printf("Timestamp: %lld (uUTC), %s (ascii, local)\n", ABS(epoch->timestamp), time_str);
+#else
+        printf("Timestamp: %ld (uUTC), %s (ascii, local)\n", ABS(epoch->timestamp), time_str);
+#endif
+        local_date_time_string(epoch->end_timestamp, time_str);
+#ifdef _WIN32
+        printf("End Timestamp: %lld (uUTC), %s (ascii, local)\n", ABS(epoch->timestamp), time_str);
+#else
+        printf("End Timestamp: %ld (uUTC), %s (ascii, local)\n", ABS(epoch->timestamp), time_str);
+#endif
+#ifdef _WIN32
+        printf("Duration: %lld (microseconds)\n", epoch->duration);
+#else
+        printf("Duration: %ld (microseconds)\n", epoch->duration);
+#endif
+        printf("Type: %s\n", epoch->type);
+        printf("Text: %s\n", epoch->text);
+    }
+    // Unrecognized record version
+    else {
+        printf("Unrecognized Epoch version\n");
+    }
+    
+    return;
+}
+
+
+si4	check_mefrec_Epoc_type_alignment(ui1 *bytes)
+{
+    
+    MEFREC_Epoc_1_0		*epoch;
+    si4			free_flag = MEF_FALSE;
+    extern MEF_GLOBALS	*MEF_globals;
+    
+    
+    // check overall sizes
+    if (sizeof(MEFREC_Epoc_1_0) != MEFREC_Epoc_1_0_BYTES)
+        goto MEFREC_Epoc_1_0_NOT_ALIGNED;
+    
+    // check fields - base structure
+    if (bytes == NULL) {
+        bytes = (ui1 *) e_malloc(LARGEST_RECORD_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+        free_flag = MEF_TRUE;
+    }
+    epoch = (MEFREC_Epoc_1_0 *) (bytes + MEFREC_Epoc_1_0_OFFSET);
+    if (&epoch->id_number != (si8 *) (bytes + MEFREC_Epoc_1_0_ID_NUMBER_OFFSET))
+        goto MEFREC_Epoc_1_0_NOT_ALIGNED;
+    if (&epoch->timestamp != (si8 *) (bytes + MEFREC_Epoc_1_0_TIMESTAMP_OFFSET))
+        goto MEFREC_Epoc_1_0_NOT_ALIGNED;
+    if (&epoch->end_timestamp != (si8 *) (bytes + MEFREC_Epoc_1_0_END_TIMESTAMP_OFFSET))
+        goto MEFREC_Epoc_1_0_NOT_ALIGNED;
+    if (&epoch->duration != (si8 *) (bytes + MEFREC_Epoc_1_0_DURATION_OFFSET))
+        goto MEFREC_Epoc_1_0_NOT_ALIGNED;
+    if (epoch->type != (si1 *) (bytes + MEFREC_Epoc_1_0_TYPE_OFFSET))
+        goto MEFREC_Epoc_1_0_NOT_ALIGNED;
+    if (epoch->text != (si1 *) (bytes + MEFREC_Epoc_1_0_TEXT_OFFSET))
+        goto MEFREC_Epoc_1_0_NOT_ALIGNED;
+    
+    // aligned
+    if (free_flag == MEF_TRUE)
+        free(bytes);
+    
+    if (MEF_globals->verbose == MEF_TRUE)
+        (void) printf("%s(): MEFREC_Epoc_1_0 structure is aligned\n", __FUNCTION__);
+    
+    return(MEF_TRUE);
+    
+    // not aligned
+MEFREC_Epoc_1_0_NOT_ALIGNED:
+    
+    if (free_flag == MEF_TRUE)
+        free(bytes);
+    
+    (void) fprintf(stderr, "%c%s(): MEFREC_Epoc_1_0 structure is not aligned\n", 7, __FUNCTION__);
+    
+    return(MEF_FALSE);
+    
 }
 
 /*************************************************************************************/
