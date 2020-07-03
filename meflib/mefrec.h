@@ -268,6 +268,76 @@ si4 check_mefrec_ESti_type_alignment(ui1 *bytes);
 /*************************************************************************************/
 
 
+/*******************************   Curs: Cursor Record   ******************************/
+
+// Constants
+#define MEFREC_Curs_TYPE_STRING				"Curs"							// ascii[4]
+#define MEFREC_Curs_TYPE_CODE				(ui4) 0x73727543					// ui4 (little endian)
+// #define MEFREC_Curs_TYPE_CODE			(ui4) 0x43757273					// ui4 (big endian)
+
+// Version 1.0
+// MEFREC_Curs_1_0 offsets below apply to base address of record
+#define MEFREC_Curs_1_0_OFFSET				RECORD_HEADER_BYTES					// version 1.0
+#define MEFREC_Curs_1_0_BYTES				160
+#define MEFREC_Curs_1_0_ID_NUMBER_OFFSET   	(RECORD_HEADER_BYTES + 0)		// si8
+#define MEFREC_Curs_1_0_TIMESTAMP_OFFSET    (RECORD_HEADER_BYTES + 8)       // si8
+#define MEFREC_Curs_1_0_LATENCY_OFFSET		(RECORD_HEADER_BYTES + 16)		// si8
+#define MEFREC_Curs_1_0_VALUE_OFFSET        (RECORD_HEADER_BYTES + 24)      // sf8
+#define MEFREC_Curs_1_0_NAME_OFFSET         (RECORD_HEADER_BYTES + 32)      // utf8[31]
+#define MEFREC_Curs_1_0_NAME_BYTES          128
+
+// Structures
+typedef struct {
+    si8 id_number;
+    si8 timestamp;
+    si8 latency;
+    sf8 value;
+    si1 name[MEFREC_Curs_1_0_NAME_BYTES];
+} MEFREC_Curs_1_0;
+
+// Prototypes
+void	show_mefrec_Curs_type(RECORD_HEADER *record_header);
+si4	check_mefrec_Curs_type_alignment(ui1 *bytes);
+
+/*************************************************************************************/
+
+
+/*******************************   Epoc: Epoch Record   ******************************/
+
+// Constants
+#define MEFREC_Epoc_TYPE_STRING				"Epoc"							// ascii[4]
+#define MEFREC_Epoc_TYPE_CODE				(ui4) 0x636f7045					// ui4 (little endian)
+// #define MEFREC_Epoc_TYPE_CODE			(ui4) 0x45706f63					// ui4 (big endian)
+
+// Version 1.0
+// MEFREC_Epoc_1_0 offsets below apply to base address of record
+#define MEFREC_Epoc_1_0_OFFSET				RECORD_HEADER_BYTES					// version 1.0
+#define MEFREC_Epoc_1_0_BYTES				192
+#define MEFREC_Epoc_1_0_ID_NUMBER_OFFSET  	(RECORD_HEADER_BYTES + 0)		// si8
+#define MEFREC_Epoc_1_0_TIMESTAMP_OFFSET  	(RECORD_HEADER_BYTES + 8)		// si8
+#define MEFREC_Epoc_1_0_END_TIMESTAMP_OFFSET		(RECORD_HEADER_BYTES + 16)		// si8
+#define MEFREC_Epoc_1_0_DURATION_OFFSET     (RECORD_HEADER_BYTES + 24)       // si8
+#define MEFREC_Epoc_1_0_TYPE_OFFSET         (RECORD_HEADER_BYTES + 32)       // utf8[7]
+#define MEFREC_Epoc_1_0_TYPE_BYTES          32
+#define MEFREC_Epoc_1_0_TEXT_OFFSET         (RECORD_HEADER_BYTES + 64)       // utf8[31]
+#define MEFREC_Epoc_1_0_TEXT_BYTES          128
+
+// Structures
+typedef struct {
+	si8 id_number;
+	si8 timestamp;
+	si8 end_timestamp;
+	si8 duration;
+    si1 type[MEFREC_Epoc_1_0_TYPE_BYTES];
+	si1 text[MEFREC_Epoc_1_0_TEXT_BYTES];
+} MEFREC_Epoc_1_0;
+
+// Prototypes
+void	show_mefrec_Epoc_type(RECORD_HEADER *record_header);
+si4	check_mefrec_Epoc_type_alignment(ui1 *bytes);
+
+/*************************************************************************************/
+
 
 /***************************   UnRc: Unrecognized Record   ***************************/
 
