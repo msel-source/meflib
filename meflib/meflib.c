@@ -6665,13 +6665,19 @@ void 	RED_decode(RED_PROCESSING_STRUCT *rps)
 	low_bound = in_byte >> (8 - EXTRA_BITS);
 	range = (ui4) 1 << EXTRA_BITS;
 	ui4_p2 = cumulative_counts + 256;
-	for (i = block_header->difference_bytes; i--;) {
-                while (range <= BOTTOM_VALUE) {
+	for (i = block_header->difference_bytes; i--;) { 
+		while (range <= BOTTOM_VALUE) {
 			low_bound = (low_bound << 8) | ((in_byte << EXTRA_BITS) & 0xff);
-                        in_byte = *ib_p++;
-                        low_bound |= in_byte >> (8 - EXTRA_BITS);
-                        range <<= 8;
-                }
+			// check to see if we are still within the bounds of the compressed data
+			// this check prevents an issue of buffer-overrun upon reading data
+			if ((ib_p - ((ui1*)rps->block_header)) <= (block_header->block_bytes - 1))
+				in_byte = *ib_p++;
+			else
+				in_byte = 0; // give it a dummy byte, since there is no more data in the block.
+			low_bound |= in_byte >> (8 - EXTRA_BITS);			
+			range <<= 8;
+          
+		}
 		temp_ui4 = low_bound / (range_per_count = range / scaled_total_counts);
 		cc = (temp_ui4 >= scaled_total_counts ? (scaled_total_counts - 1) : temp_ui4);
 		if (cc > cumulative_counts[128]) {
