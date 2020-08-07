@@ -280,7 +280,7 @@ si4 check_mefrec_ESti_type_alignment(ui1 *bytes);
 #define MEFREC_Curs_1_0_OFFSET				RECORD_HEADER_BYTES					// version 1.0
 #define MEFREC_Curs_1_0_BYTES				160
 #define MEFREC_Curs_1_0_ID_NUMBER_OFFSET   	(RECORD_HEADER_BYTES + 0)		// si8
-#define MEFREC_Curs_1_0_TIMESTAMP_OFFSET    (RECORD_HEADER_BYTES + 8)       // si8
+#define MEFREC_Curs_1_0_TRACE_TIMESTAMP_OFFSET    (RECORD_HEADER_BYTES + 8)       // si8
 #define MEFREC_Curs_1_0_LATENCY_OFFSET		(RECORD_HEADER_BYTES + 16)		// si8
 #define MEFREC_Curs_1_0_VALUE_OFFSET        (RECORD_HEADER_BYTES + 24)      // sf8
 #define MEFREC_Curs_1_0_NAME_OFFSET         (RECORD_HEADER_BYTES + 32)      // utf8[31]
@@ -289,7 +289,7 @@ si4 check_mefrec_ESti_type_alignment(ui1 *bytes);
 // Structures
 typedef struct {
     si8 id_number;
-    si8 timestamp;
+    si8 trace_timestamp;
     si8 latency;
     sf8 value;
     si1 name[MEFREC_Curs_1_0_NAME_BYTES];
