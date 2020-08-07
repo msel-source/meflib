@@ -798,11 +798,11 @@ void	show_mefrec_Curs_type(RECORD_HEADER *record_header)
 #else
         printf("ID number: %ld\n", cursor->id_number);
 #endif
-        local_date_time_string(cursor->timestamp, time_str);
+        local_date_time_string(cursor->trace_timestamp, time_str);
 #ifdef _WIN32
-        printf("Timestamp: %lld (uUTC), %s (ascii, local)\n", ABS(cursor->timestamp), time_str);
+        printf("Trace timestamp: %lld (uUTC), %s (ascii, local)\n", ABS(cursor->trace_timestamp), time_str);
 #else
-        printf("Timestamp: %ld (uUTC), %s (ascii, local)\n", ABS(cursor->timestamp), time_str);
+        printf("Trace timestamp: %ld (uUTC), %s (ascii, local)\n", ABS(cursor->trace_timestamp), time_str);
 #endif
 #ifdef _WIN32
         printf("Latency: %lld (microseconds)\n", cursor->latency);
@@ -841,7 +841,7 @@ si4	check_mefrec_Curs_type_alignment(ui1 *bytes)
     cursor = (MEFREC_Curs_1_0 *) (bytes + MEFREC_Curs_1_0_OFFSET);
     if (&cursor->id_number != (si8 *) (bytes + MEFREC_Curs_1_0_ID_NUMBER_OFFSET))
         goto MEFREC_Curs_1_0_NOT_ALIGNED;
-    if (&cursor->timestamp != (si8 *) (bytes + MEFREC_Curs_1_0_TIMESTAMP_OFFSET))
+    if (&cursor->trace_timestamp != (si8 *) (bytes + MEFREC_Curs_1_0_TRACE_TIMESTAMP_OFFSET))
         goto MEFREC_Curs_1_0_NOT_ALIGNED;
     if (&cursor->latency != (si8 *) (bytes + MEFREC_Curs_1_0_LATENCY_OFFSET))
         goto MEFREC_Curs_1_0_NOT_ALIGNED;
