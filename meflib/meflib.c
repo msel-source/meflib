@@ -3759,7 +3759,7 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 				else if (behavior_on_fail & EXIT_ON_FAIL)
 					exit(1);
 			}
-			fps_lock(fps, lock_type, function, line, behavior_on_fail);
+			//fps_lock(fps, lock_type, function, line, behavior_on_fail);
 		}
 	#endif
 	
@@ -3782,8 +3782,8 @@ si4	fps_read(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	
 	#ifndef _WIN32
 		// lock
-		if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
-			fps_lock(fps, F_RDLCK, function, line, behavior_on_fail);
+		//if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
+		//	fps_lock(fps, F_RDLCK, function, line, behavior_on_fail);
 	#endif
 	// read
 	if (fps->directives.io_bytes == FPS_FULL_FILE)
@@ -3794,8 +3794,8 @@ si4	fps_read(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	
 	#ifndef _WIN32
 		// unlock
-		if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
-			fps_unlock(fps, function, line, behavior_on_fail);
+		//if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
+		//	fps_unlock(fps, function, line, behavior_on_fail);
 	#endif
 	
 	return(0);
@@ -3848,8 +3848,8 @@ si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 be
 	
 	#ifndef _WIN32
 		// lock
-		if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
-			fps_lock(fps, F_WRLCK, function, line, behavior_on_fail);
+		//if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
+		//	fps_lock(fps, F_WRLCK, function, line, behavior_on_fail);
 	#endif
 	
 	// write
@@ -3861,8 +3861,8 @@ si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 be
 	
 	#ifndef _WIN32
 		// unlock
-		if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
-			fps_unlock(fps, function, line, behavior_on_fail);
+		//if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
+		//	fps_unlock(fps, function, line, behavior_on_fail);
 	#endif
         
 	// get file length
@@ -4003,7 +4003,7 @@ void	free_session(SESSION *session, si4 free_session_structure)
         si1 temp_path[MEF_FULL_FILE_NAME_BYTES], temp_name[MEF_SEGMENT_BASE_FILE_NAME_BYTES], temp_extension[TYPE_BYTES];
 
 		// Windows structures
-        WIN32_FIND_DATA fdFile; 
+        WIN32_FIND_DATAA fdFile; 
 	    HANDLE hFind = NULL; 
 
 	    // free previous file list
@@ -4016,15 +4016,15 @@ void	free_session(SESSION *session, si4 free_session_structure)
 	    // get the files / directoris with required extension and count by building a mask
 	    *num_files = 0;
 	    sprintf(temp_path, "%s\\*.*", enclosing_directory); 
-	    if((hFind = FindFirstFile(temp_path, &fdFile)) == INVALID_HANDLE_VALUE) 
+	    if((hFind = FindFirstFileA(temp_path, &fdFile)) == INVALID_HANDLE_VALUE) 
 	    { 
 	        (void) UTF8_fprintf(stderr, "%c\n\t%s() failed to open directory \"%s\"\n", 7, __FUNCTION__, enclosing_directory);
 			return 0;
 	    } 
 
-	    while (FindNextFile(hFind, &fdFile)){
-	    	//Skip initial "." and ".." directories
-	        if((strcmp((si1 *) fdFile.cFileName, ".") != 0) && (strcmp((si1 *)fdFile.cFileName, "..") != 0))
+	    while (FindNextFileA(hFind, &fdFile)){
+	    	// Skip initial "." and ".." directories, and also any directory name beginning with a "."
+	        if (strncmp((si1 *) fdFile.cFileName, ".", 1) != 0)
 	        { 
 	        	sprintf(temp_path, "%s\\%s", enclosing_directory, (si1 *) fdFile.cFileName); 
 
@@ -4043,15 +4043,16 @@ void	free_session(SESSION *session, si4 free_session_structure)
 		
 	    // now read again and allocate and build
 	    sprintf(temp_path, "%s\\*.*", enclosing_directory);
-		hFind = FindFirstFile(temp_path, &fdFile);
+		hFind = FindFirstFileA(temp_path, &fdFile);
 		if ( file_list == NULL ){
 			file_list = (si1 **) e_calloc((size_t) *num_files, sizeof(si1 *), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 			i = 0;
-			while (FindNextFile(hFind, &fdFile)) {
+			while (FindNextFileA(hFind, &fdFile)) {
 				// Get extension
 
-				if((strcmp((si1 *) fdFile.cFileName, ".") != 0) && (strcmp((si1 *)fdFile.cFileName, "..") != 0)){
-
+				// Skip initial "." and ".." directories, and also any directory name beginning with a "."
+				if (strncmp((si1*)fdFile.cFileName, ".", 1) != 0) 
+				{
 					ext = strrchr((si1 *) fdFile.cFileName, '.');
 					if (ext != NULL && strlen(ext) != 1)
 						ext++;
@@ -4152,7 +4153,8 @@ void	free_session(SESSION *session, si4 free_session_structure)
 			if (ext != NULL && strlen(ext) != 1)
 				ext++;
 			
-			if (!((ext == NULL) || (ext == contents_list[n]->d_name)) &&  (!strcmp(ext, extension)))
+			// make sure 1) the file has an extension, 2) the extension is one we are searching for, 3) and that the directory name doesn't begin with a "."
+			if ((!((ext == NULL) || (ext == contents_list[n]->d_name)) && (!strcmp(ext, extension))) && strncmp(contents_list[n]->d_name, ".", 1))
 				++(*num_files);
 			++n;
 	    }
@@ -4168,7 +4170,8 @@ void	free_session(SESSION *session, si4 free_session_structure)
 				if (ext != NULL && strlen(ext) != 1)
 					ext++;
 				
-				if (!((ext == NULL) || (ext == contents_list[n]->d_name)) &&  (!strcmp(ext, extension))){
+				// make sure 1) the file has an extension, 2) the extension is one we are searching for, 3) and that the directory name doesn't begin with a "."
+				if ((!((ext == NULL) || (ext == contents_list[n]->d_name)) && (!strcmp(ext, extension))) && strncmp(contents_list[n]->d_name, ".", 1)) {
 					file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 					MEF_strcpy(temp_str, enclosing_directory);
 					
