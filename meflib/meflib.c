@@ -3654,7 +3654,11 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	#ifndef _WIN32
 		si4		lock_type;
 	#endif
+#ifndef _WIN32
 	struct stat	sb;
+#else
+	struct _stat64 sb64;
+#endif
 	
 	
 	if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
@@ -3762,10 +3766,15 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 			//fps_lock(fps, lock_type, function, line, behavior_on_fail);
 		}
 	#endif
-	
+
 	// get file length
+#ifndef _WIN32
 	fstat(fps->fd, &sb);
 	fps->file_length = sb.st_size;
+#else
+	_stat64(fps->full_file_name, &sb64);  // 64-bit necessary for file sizes greater than 4 GB
+	fps->file_length = sb64.st_size;
+#endif
 	
 	
 	return(0);
@@ -3840,7 +3849,11 @@ si4	fps_read(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 behavior_on_fail)
 {
 	si8		o_bytes;
+#ifndef _WIN32
 	struct stat	sb;
+#else
+	struct _stat64 sb64;
+#endif
 	
         
 	if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
@@ -3867,8 +3880,13 @@ si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 be
         
 	// get file length
 	fflush(fps->fp);  // have to flush to update stat structure after write
+#ifndef _WIN32
 	fstat(fps->fd, &sb);
 	fps->file_length = sb.st_size;
+#else
+	_stat64(fps->full_file_name, &sb64);
+	fps->file_length = sb64.st_size;
+#endif
 	
 	
 	return(0);
@@ -3998,7 +4016,7 @@ void	free_session(SESSION *session, si4 free_session_structure)
 		si4 i, j;
 		si1 temp_str[MEF_FULL_FILE_NAME_BYTES];
 		si1 *ext;
-        struct _stat sb;
+		struct _stat64 sb64;
         si4 skip_segment;
         si1 temp_path[MEF_FULL_FILE_NAME_BYTES], temp_name[MEF_SEGMENT_BASE_FILE_NAME_BYTES], temp_extension[TYPE_BYTES];
 
@@ -4082,9 +4100,9 @@ void	free_session(SESSION *session, si4 free_session_structure)
 			                if (!strcmp(temp_extension, TIME_SERIES_CHANNEL_DIRECTORY_TYPE_STRING)){
 
 				                // get file length
-				                _stat(temp_str, &sb);
+				                _stat64(temp_str, &sb64);  // 64-bit necessary for file sizes greater than 4 GB
 
-				                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
+				                if (sb64.st_size <= UNIVERSAL_HEADER_BYTES)
 				                {
 				                    skip_segment = 1;
 				                    (*num_files)--;
