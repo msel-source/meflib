@@ -3772,7 +3772,7 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	fstat(fps->fd, &sb);
 	fps->file_length = sb.st_size;
 #else
-	_stat64(fps->full_file_name, &sb64);  // 64-bit necessary for file sizes greater than 4 GB
+	_fstat64(fps->fd, &sb64);  // 64-bit necessary for file sizes greater than 4 GB
 	fps->file_length = sb64.st_size;
 #endif
 	
@@ -3884,7 +3884,7 @@ si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 be
 	fstat(fps->fd, &sb);
 	fps->file_length = sb.st_size;
 #else
-	_stat64(fps->full_file_name, &sb64);
+	_fstat64(fps->fd, &sb64);
 	fps->file_length = sb64.st_size;
 #endif
 	
