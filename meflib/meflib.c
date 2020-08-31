@@ -6,7 +6,7 @@
 
 
 // Specification for Multiscale Electrophysiology Format (MEF) version 3.0
-// Copyright 2013, Mayo Foundation, Rochester MN. All rights reserved.
+// Copyright 2020, Mayo Foundation, Rochester MN. All rights reserved.
 // Written by Matt Stead, Ben Brinkmann, and Dan Crepeau.
 
 // Usage and modification of this source code is governed by the Apache 2.0 license.
@@ -2027,12 +2027,16 @@ size_t	e_fread(void *ptr, size_t size, size_t n_members, FILE *stream, si1 *path
 }
 
 
-si4	e_fseek(FILE *stream, size_t offset, si4 whence, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail)
+si4	e_fseek(FILE *stream, si8 offset, si4 whence, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail)
 {
 	if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
 		behavior_on_fail = MEF_globals->behavior_on_fail;
 	
+#ifndef _WIN32
 	if ((fseek(stream, offset, whence)) == -1) {
+#else
+    if ((_fseeki64(stream, offset, whence)) == -1) {
+#endif
 		if (!(behavior_on_fail & SUPPRESS_ERROR_OUTPUT)) {
 			#ifdef _WIN32
 				(void) fprintf(stderr, "%c\n\t%s() failed to move the file pointer to requested location (offset %lld, whence %d)\n", 7, __FUNCTION__, offset, whence);
