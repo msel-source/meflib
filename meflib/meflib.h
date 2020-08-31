@@ -9,7 +9,7 @@
 
 
 // Specification for Multiscale Electrophysiology Format (MEF) version 3.0
-// Copyright 2013, Mayo Foundation, Rochester MN. All rights reserved.
+// Copyright 2020, Mayo Foundation, Rochester MN. All rights reserved.
 // Written by Matt Stead, Ben Brinkmann, and Dan Crepeau.
 
 // Usage and modification of this source code is governed by the Apache 2.0 license.
@@ -189,7 +189,7 @@ si4 	e_system(const char *command, const si1 *function, si4 line, ui4 behavior_o
 void	*e_calloc(size_t n_members, size_t size, const si1 *function, si4 line, ui4 behavior_on_fail);
 FILE	*e_fopen(si1 *path, si1 *mode, const si1 *function, si4 line, ui4 behavior_on_fail);
 size_t	e_fread(void *ptr, size_t size, size_t n_members, FILE *stream, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail);
-si4	e_fseek(FILE *stream, size_t offset, si4 whence, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail);
+si4	e_fseek(FILE *stream, si8 offset, si4 whence, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail);
 long	e_ftell(FILE *stream, const si1 *function, si4 line, ui4 behavior_on_fail);
 size_t	e_fwrite(void *ptr, size_t size, size_t n_members, FILE *stream, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail);
 void	*e_malloc(size_t n_bytes, const si1 *function, si4 line, ui4 behavior_on_fail);
