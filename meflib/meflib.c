@@ -5936,9 +5936,7 @@ SEGMENT	*read_MEF_segment(SEGMENT *segment, si1 *seg_path, si4 channel_type, si1
 			segment->time_series_data_fps = allocate_file_processing_struct(0, TIME_SERIES_DATA_FILE_TYPE_CODE, NULL, NULL, 0);
 			if (read_time_series_data == MEF_FALSE) {
 				segment->time_series_data_fps->directives.io_bytes = UNIVERSAL_HEADER_BYTES;
-#ifndef FORCE_CLOSE_AFTER_READ
-				segment->time_series_data_fps->directives.close_file = MEF_FALSE;
-#endif
+				//segment->time_series_data_fps->directives.close_file = MEF_FALSE;
 			}
 			(void) read_MEF_file(segment->time_series_data_fps, full_file_name, password, password_data, NULL, USE_GLOBAL_BEHAVIOR);
 			// update metadata if metadata conflicts with actual data
