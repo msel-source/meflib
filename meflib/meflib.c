@@ -5378,25 +5378,21 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 			smd3 = seg->metadata_fps->metadata.section_3;
 			cmd3 = channel->metadata.section_3;
 			if (i == 0) {
-                                memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
-                                memcpy(ctmd, stmd, METADATA_SECTION_2_BYTES);
-                                memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
-                                if (ABS(channel->earliest_start_time) > ABS(seg->metadata_fps->universal_header->start_time))
-					channel->earliest_start_time = seg->metadata_fps->universal_header->start_time;
-                                if (ABS(channel->latest_end_time) < ABS(seg->metadata_fps->universal_header->end_time))
-					channel->latest_end_time = seg->metadata_fps->universal_header->end_time;
-                                if (seg->record_data_fps != NULL) {
-                                	if (channel->maximum_number_of_records < seg->record_data_fps->universal_header->number_of_entries)
+				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
+				memcpy(ctmd, stmd, METADATA_SECTION_2_BYTES);
+				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
+				if (seg->record_data_fps != NULL) {
+					if (channel->maximum_number_of_records < seg->record_data_fps->universal_header->number_of_entries)
 						channel->maximum_number_of_records = seg->record_data_fps->universal_header->number_of_entries;
-                                        if (channel->maximum_record_bytes < seg->record_data_fps->universal_header->maximum_entry_size)
+					if (channel->maximum_record_bytes < seg->record_data_fps->universal_header->maximum_entry_size)
 						channel->maximum_record_bytes = seg->record_data_fps->universal_header->maximum_entry_size;
-                                }
+				}
 				if (strlen(channel->anonymized_name) == 0)
 					MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 				else if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
 					bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-                                continue;
-                        }
+				continue;
+			}
 			// universal header
 			if (ABS(seg->metadata_fps->universal_header->start_time) < ABS(channel->earliest_start_time))
 				channel->earliest_start_time = seg->metadata_fps->universal_header->start_time;
@@ -5515,10 +5511,6 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
 				memcpy(cvmd, svmd, METADATA_SECTION_2_BYTES);
 				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
-				if (ABS(channel->earliest_start_time) > ABS(seg->metadata_fps->universal_header->start_time))
-					channel->earliest_start_time = seg->metadata_fps->universal_header->start_time;
-				if (ABS(channel->latest_end_time) < ABS(seg->metadata_fps->universal_header->end_time))
-					channel->latest_end_time = seg->metadata_fps->universal_header->end_time;
 				if (seg->record_data_fps != NULL) {
 					if (channel->maximum_number_of_records < seg->record_data_fps->universal_header->number_of_entries)
 						channel->maximum_number_of_records = seg->record_data_fps->universal_header->number_of_entries;
@@ -6074,10 +6066,6 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 			memcpy(smd1, cmd1, METADATA_SECTION_1_BYTES);
 			memcpy(stmd, ctmd, METADATA_SECTION_2_BYTES);
 			memcpy(smd3, cmd3, METADATA_SECTION_3_BYTES);
-			if (ABS(session->earliest_start_time) > ABS(chan->earliest_start_time))
-				session->earliest_start_time = chan->earliest_start_time;
-			if (ABS(session->latest_end_time) < ABS(chan->latest_end_time))
-				session->latest_end_time = chan->latest_end_time;
 			if (chan->record_data_fps != NULL) {
 				if (session->maximum_number_of_records < chan->maximum_number_of_records)
 					session->maximum_number_of_records = chan->maximum_number_of_records;
@@ -6213,10 +6201,6 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 			memcpy(smd1, cmd1, METADATA_SECTION_1_BYTES);
 			memcpy(svmd, cvmd, METADATA_SECTION_2_BYTES);
 			memcpy(smd3, cmd3, METADATA_SECTION_3_BYTES);
-			if (ABS(session->earliest_start_time) > ABS(chan->earliest_start_time))
-				session->earliest_start_time = chan->earliest_start_time;
-			if (ABS(session->latest_end_time) < ABS(chan->latest_end_time))
-				session->latest_end_time = chan->latest_end_time;
 			if (chan->record_data_fps != NULL) {
 				if (session->maximum_number_of_records < chan->maximum_number_of_records)
 					session->maximum_number_of_records = chan->maximum_number_of_records;
