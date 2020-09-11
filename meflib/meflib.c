@@ -5532,10 +5532,8 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				channel->earliest_start_time = seg->metadata_fps->universal_header->start_time;
 			if (ABS(seg->metadata_fps->universal_header->end_time) > ABS(channel->latest_end_time))
 				channel->latest_end_time = seg->metadata_fps->universal_header->end_time;
-			if (seg->time_series_data_fps != NULL && (ABS(seg->time_series_data_fps->universal_header->end_time) < ABS(channel->latest_end_time)))
-				channel->latest_end_time = seg->time_series_data_fps->universal_header->end_time;
-			if (seg->time_series_indices_fps != NULL && (ABS(seg->time_series_indices_fps->universal_header->end_time) < ABS(channel->latest_end_time)))
-				channel->latest_end_time = seg->time_series_indices_fps->universal_header->end_time;
+			if (seg->video_indices_fps != NULL && (ABS(seg->video_indices_fps->universal_header->end_time) < ABS(channel->latest_end_time)))
+				channel->latest_end_time = seg->video_indices_fps->universal_header->end_time;
 			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
 				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			if (seg->record_data_fps != NULL) {
