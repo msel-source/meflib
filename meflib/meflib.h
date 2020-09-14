@@ -130,12 +130,12 @@
 /************************************************************************************/
 
 typedef struct {
-        // time constants
+	// time constants
 	si8	recording_time_offset;
 	ui4	recording_time_offset_mode;
 	si4	GMT_offset;
-        si8	DST_start_time;
-        si8	DST_end_time;
+	si8	DST_start_time;
+	si8	DST_end_time;
 	// alignment fields
 	si4	universal_header_aligned;
 	si4	metadata_section_1_aligned;
@@ -154,7 +154,7 @@ typedef struct {
 	sf8	*RED_normal_CDF_table;
 	// CRC
 	ui4	*CRC_table;
-        ui4	CRC_mode;
+    ui4	CRC_mode;
 	// AES tables
 	si4	*AES_sbox_table;
 	si4	*AES_rcon_table;
@@ -165,10 +165,13 @@ typedef struct {
 	// UTF8 tables
 	ui4	*UTF8_offsets_from_UTF8_table;
 	si1	*UTF8_trailing_bytes_for_UTF8_table;
-        // miscellaneous
-        si4	verbose;
-        ui4	behavior_on_fail;
-        ui4	file_creation_umask;
+    // miscellaneous
+    si4	verbose;
+    ui4	behavior_on_fail;
+    ui4	file_creation_umask;
+	si1 read_time_series_indices;
+	si1 read_video_indices;
+	si1 read_record_indices;
 } MEF_GLOBALS;
 
 
