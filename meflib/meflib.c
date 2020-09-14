@@ -5356,10 +5356,10 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 	free(segment_names);
         
         // fill in channel metadata
-        if (channel->metadata.section_1 == NULL)
-                channel->metadata.section_1 = (METADATA_SECTION_1 *) e_calloc((size_t) 1, sizeof(METADATA_SECTION_1), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-        if (channel->metadata.section_3 == NULL)
-                channel->metadata.section_3 = (METADATA_SECTION_3 *) e_calloc((size_t) 1, sizeof(METADATA_SECTION_3), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+	if (channel->metadata.section_1 == NULL)
+			channel->metadata.section_1 = (METADATA_SECTION_1 *) e_calloc((size_t) 1, sizeof(METADATA_SECTION_1), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+	if (channel->metadata.section_3 == NULL)
+			channel->metadata.section_3 = (METADATA_SECTION_3 *) e_calloc((size_t) 1, sizeof(METADATA_SECTION_3), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 	if (channel->channel_type == TIME_SERIES_CHANNEL_TYPE) {
 		if (channel->metadata.time_series_section_2 == NULL)
 			channel->metadata.time_series_section_2 = (TIME_SERIES_METADATA_SECTION_2 *) e_calloc((size_t) 1, sizeof(TIME_SERIES_METADATA_SECTION_2), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
@@ -5368,34 +5368,19 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 			channel->metadata.video_section_2 = (VIDEO_METADATA_SECTION_2 *) e_calloc((size_t) 1, sizeof(VIDEO_METADATA_SECTION_2), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 	}
 
-        // times series channel
-        if (channel->channel_type == TIME_SERIES_CHANNEL_TYPE) {
-		
-                for (i = 0; i < n_segments; ++i) {
-                        seg = channel->segments + i;
+	// times series channel
+	if (channel->channel_type == TIME_SERIES_CHANNEL_TYPE) {
+	
+		for (i = 0; i < n_segments; ++i) {
+			seg = channel->segments + i;
 			smd1 = seg->metadata_fps->metadata.section_1;
 			cmd1 = channel->metadata.section_1;
 			stmd = seg->metadata_fps->metadata.time_series_section_2;
-                        ctmd = channel->metadata.time_series_section_2;
+			ctmd = channel->metadata.time_series_section_2;
 			smd3 = seg->metadata_fps->metadata.section_3;
 			cmd3 = channel->metadata.section_3;
-			if (i == 0) {
-				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
-				memcpy(ctmd, stmd, METADATA_SECTION_2_BYTES);
-				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
-				if (seg->record_data_fps != NULL) {
-					if (channel->maximum_number_of_records < seg->record_data_fps->universal_header->number_of_entries)
-						channel->maximum_number_of_records = seg->record_data_fps->universal_header->number_of_entries;
-					if (channel->maximum_record_bytes < seg->record_data_fps->universal_header->maximum_entry_size)
-						channel->maximum_record_bytes = seg->record_data_fps->universal_header->maximum_entry_size;
-				}
-				if (strlen(channel->anonymized_name) == 0)
-					MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-				else if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
-					bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-				continue;
-			}
-			// universal header
+			
+			// update channel properties based on each segment
 			if (ABS(seg->metadata_fps->universal_header->start_time) < ABS(channel->earliest_start_time))
 				channel->earliest_start_time = seg->metadata_fps->universal_header->start_time;
 			if (ABS(seg->metadata_fps->universal_header->end_time) > ABS(channel->latest_end_time))
@@ -5404,14 +5389,28 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				channel->latest_end_time = seg->time_series_data_fps->universal_header->end_time;
 			if (seg->time_series_indices_fps != NULL && (ABS(seg->time_series_indices_fps->universal_header->end_time) < ABS(channel->latest_end_time)))
 				channel->latest_end_time = seg->time_series_indices_fps->universal_header->end_time;
-			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
-				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			if (seg->record_data_fps != NULL) {
 				if (seg->record_data_fps->universal_header->number_of_entries > channel->maximum_number_of_records)
 					channel->maximum_number_of_records = seg->record_data_fps->universal_header->number_of_entries;
 				if (seg->record_data_fps->universal_header->maximum_entry_size > channel->maximum_record_bytes)
 					channel->maximum_record_bytes = seg->record_data_fps->universal_header->maximum_entry_size;
 			}
+			
+			// initialize the channel metadata based on the first segment metadata
+			if (i == 0) {
+				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
+				memcpy(ctmd, stmd, METADATA_SECTION_2_BYTES);
+				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
+				if (strlen(channel->anonymized_name) == 0)
+					MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+				else if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
+					bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+				continue;
+			}
+			
+			// univeral header
+			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
+				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			// section 1
 			if (smd1->section_2_encryption != cmd1->section_2_encryption)
 				cmd1->section_2_encryption = ENCRYPTION_LEVEL_NO_ENTRY;
@@ -5434,26 +5433,26 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				bzero(ctmd->reference_description, METADATA_CHANNEL_DESCRIPTION_BYTES);
 			if (stmd->acquisition_channel_number != ctmd->acquisition_channel_number)
 				ctmd->acquisition_channel_number = TIME_SERIES_METADATA_ACQUISITION_CHANNEL_NUMBER_NO_ENTRY;
-                        if (stmd->sampling_frequency != ctmd->sampling_frequency)
-                                ctmd->sampling_frequency = TIME_SERIES_METADATA_SAMPLING_FREQUENCY_NO_ENTRY;
-                        if (stmd->low_frequency_filter_setting != ctmd->low_frequency_filter_setting)
-                                ctmd->low_frequency_filter_setting = TIME_SERIES_METADATA_LOW_FREQUENCY_FILTER_SETTING_NO_ENTRY;
-                        if (stmd->high_frequency_filter_setting != ctmd->high_frequency_filter_setting)
-                                ctmd->high_frequency_filter_setting = TIME_SERIES_METADATA_HIGH_FREQUENCY_FILTER_SETTING_NO_ENTRY;
-                        if (stmd->notch_filter_frequency_setting != ctmd->notch_filter_frequency_setting)
-                                ctmd->notch_filter_frequency_setting = TIME_SERIES_METADATA_NOTCH_FILTER_FREQUENCY_SETTING_NO_ENTRY;
+			if (stmd->sampling_frequency != ctmd->sampling_frequency)
+				ctmd->sampling_frequency = TIME_SERIES_METADATA_SAMPLING_FREQUENCY_NO_ENTRY;
+			if (stmd->low_frequency_filter_setting != ctmd->low_frequency_filter_setting)
+				ctmd->low_frequency_filter_setting = TIME_SERIES_METADATA_LOW_FREQUENCY_FILTER_SETTING_NO_ENTRY;
+			if (stmd->high_frequency_filter_setting != ctmd->high_frequency_filter_setting)
+				ctmd->high_frequency_filter_setting = TIME_SERIES_METADATA_HIGH_FREQUENCY_FILTER_SETTING_NO_ENTRY;
+			if (stmd->notch_filter_frequency_setting != ctmd->notch_filter_frequency_setting)
+				ctmd->notch_filter_frequency_setting = TIME_SERIES_METADATA_NOTCH_FILTER_FREQUENCY_SETTING_NO_ENTRY;
 			if (stmd->AC_line_frequency != ctmd->AC_line_frequency)
 				ctmd->AC_line_frequency = TIME_SERIES_METADATA_AC_LINE_FREQUENCY_NO_ENTRY;
 			if (stmd->units_conversion_factor != ctmd->units_conversion_factor)
-                                ctmd->units_conversion_factor = TIME_SERIES_METADATA_UNITS_CONVERSION_FACTOR_NO_ENTRY;
-                        if (strcmp(stmd->units_description, ctmd->units_description))
-                                bzero(ctmd->units_description, TIME_SERIES_METADATA_UNITS_DESCRIPTION_BYTES);
-                        if (stmd->maximum_native_sample_value > ctmd->maximum_native_sample_value)
-                                ctmd->maximum_native_sample_value = stmd->maximum_native_sample_value;
-                        if (stmd->minimum_native_sample_value < ctmd->minimum_native_sample_value)
-                                ctmd->minimum_native_sample_value = stmd->minimum_native_sample_value;
-                        if (stmd->start_sample < ctmd->start_sample)
-                        	ctmd->start_sample = stmd->start_sample;
+				ctmd->units_conversion_factor = TIME_SERIES_METADATA_UNITS_CONVERSION_FACTOR_NO_ENTRY;
+			if (strcmp(stmd->units_description, ctmd->units_description))
+				bzero(ctmd->units_description, TIME_SERIES_METADATA_UNITS_DESCRIPTION_BYTES);
+			if (stmd->maximum_native_sample_value > ctmd->maximum_native_sample_value)
+				ctmd->maximum_native_sample_value = stmd->maximum_native_sample_value;
+			if (stmd->minimum_native_sample_value < ctmd->minimum_native_sample_value)
+				ctmd->minimum_native_sample_value = stmd->minimum_native_sample_value;
+			if (stmd->start_sample < ctmd->start_sample)
+				ctmd->start_sample = stmd->start_sample;
 			if (i > 0)
 				ctmd->number_of_samples += stmd->number_of_samples;
 			if (i > 0)
@@ -5463,9 +5462,9 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 			if (stmd->maximum_block_samples > ctmd->maximum_block_samples)
 				ctmd->maximum_block_samples = stmd->maximum_block_samples;
 			if (stmd->maximum_difference_bytes > ctmd->maximum_difference_bytes)
-                                ctmd->maximum_difference_bytes = stmd->maximum_difference_bytes;
-                        if (stmd->block_interval != ctmd->block_interval)
-                                ctmd->block_interval = TIME_SERIES_METADATA_BLOCK_INTERVAL_NO_ENTRY;
+				ctmd->maximum_difference_bytes = stmd->maximum_difference_bytes;
+            if (stmd->block_interval != ctmd->block_interval)
+                ctmd->block_interval = TIME_SERIES_METADATA_BLOCK_INTERVAL_NO_ENTRY;
 			if (stmd->number_of_discontinuities > ctmd->number_of_discontinuities)
 				ctmd->number_of_discontinuities = stmd->number_of_discontinuities;
 			if (stmd->maximum_contiguous_blocks > ctmd->maximum_contiguous_blocks)
@@ -5473,11 +5472,11 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 			if (stmd->maximum_contiguous_block_bytes > ctmd->maximum_contiguous_block_bytes)
 				ctmd->maximum_contiguous_block_bytes = stmd->maximum_contiguous_block_bytes;
 			if (stmd->maximum_contiguous_samples > ctmd->maximum_contiguous_samples)
-                                ctmd->maximum_contiguous_samples = stmd->maximum_contiguous_samples;
-                        if (memcmp(stmd->protected_region, ctmd->protected_region, TIME_SERIES_METADATA_SECTION_2_PROTECTED_REGION_BYTES))
-                                bzero(ctmd->protected_region, TIME_SERIES_METADATA_SECTION_2_PROTECTED_REGION_BYTES);
-                        if (memcmp(stmd->discretionary_region, ctmd->discretionary_region, TIME_SERIES_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES))
-                                bzero(ctmd->discretionary_region, TIME_SERIES_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES);
+				ctmd->maximum_contiguous_samples = stmd->maximum_contiguous_samples;
+			if (memcmp(stmd->protected_region, ctmd->protected_region, TIME_SERIES_METADATA_SECTION_2_PROTECTED_REGION_BYTES))
+				bzero(ctmd->protected_region, TIME_SERIES_METADATA_SECTION_2_PROTECTED_REGION_BYTES);
+			if (memcmp(stmd->discretionary_region, ctmd->discretionary_region, TIME_SERIES_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES))
+				bzero(ctmd->discretionary_region, TIME_SERIES_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES);
 			// section 3
 			if (smd3->recording_time_offset != cmd3->recording_time_offset)
 				cmd3->recording_time_offset = UUTC_NO_ENTRY;
@@ -5499,13 +5498,13 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				bzero(cmd3->protected_region, METADATA_SECTION_3_PROTECTED_REGION_BYTES);
 			if (memcmp(smd3->discretionary_region, cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES))
 				bzero(cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES);
-                }
-        }
-        
-        // video channel
-        if (channel->channel_type == VIDEO_CHANNEL_TYPE) {
+		}
+	}
 
-                for (i = 0; i < n_segments; ++i) {
+	// video channel
+	if (channel->channel_type == VIDEO_CHANNEL_TYPE) {
+
+		for (i = 0; i < n_segments; ++i) {
 			seg = channel->segments + i;
 			smd1 = seg->metadata_fps->metadata.section_1;
 			cmd1 = channel->metadata.section_1;
@@ -5513,37 +5512,36 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 			cvmd = channel->metadata.video_section_2;
 			smd3 = seg->metadata_fps->metadata.section_3;
 			cmd3 = channel->metadata.section_3;
-			if (i == 0) {
-				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
-				memcpy(cvmd, svmd, METADATA_SECTION_2_BYTES);
-				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
-				if (seg->record_data_fps != NULL) {
-					if (channel->maximum_number_of_records < seg->record_data_fps->universal_header->number_of_entries)
-						channel->maximum_number_of_records = seg->record_data_fps->universal_header->number_of_entries;
-					if (channel->maximum_record_bytes < seg->record_data_fps->universal_header->maximum_entry_size)
-						channel->maximum_record_bytes = seg->record_data_fps->universal_header->maximum_entry_size;
-				}
-				if (strlen(channel->anonymized_name) == 0)
-					MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-				else if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
-					bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-				continue;
-			}
-			// universal header
+			
+			// update channel properties based on each segment
 			if (ABS(seg->metadata_fps->universal_header->start_time) < ABS(channel->earliest_start_time))
 				channel->earliest_start_time = seg->metadata_fps->universal_header->start_time;
 			if (ABS(seg->metadata_fps->universal_header->end_time) > ABS(channel->latest_end_time))
 				channel->latest_end_time = seg->metadata_fps->universal_header->end_time;
 			if (seg->video_indices_fps != NULL && (ABS(seg->video_indices_fps->universal_header->end_time) < ABS(channel->latest_end_time)))
 				channel->latest_end_time = seg->video_indices_fps->universal_header->end_time;
-			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
-				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			if (seg->record_data_fps != NULL) {
 				if (seg->record_data_fps->universal_header->number_of_entries > channel->maximum_number_of_records)
 					channel->maximum_number_of_records = seg->record_data_fps->universal_header->number_of_entries;
 				if (seg->record_data_fps->universal_header->maximum_entry_size > channel->maximum_record_bytes)
 					channel->maximum_record_bytes = seg->record_data_fps->universal_header->maximum_entry_size;
 			}
+			
+			// initialize the channel metadata based on the first segment metadata
+			if (i == 0) {
+				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
+				memcpy(cvmd, svmd, METADATA_SECTION_2_BYTES);
+				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
+				if (strlen(channel->anonymized_name) == 0)
+					MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+				else if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
+					bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+				continue;
+			}
+			
+			// universal header
+			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
+				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			// section 1
 			if (smd1->section_2_encryption != cmd1->section_2_encryption)
 				cmd1->section_2_encryption = ENCRYPTION_LEVEL_NO_ENTRY;
@@ -5562,24 +5560,24 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				cvmd->recording_duration = UUTC_NO_ENTRY;
 			else
 				cvmd->recording_duration = ABS(channel->latest_end_time) - ABS(channel->earliest_start_time) + 1;
-                        if (svmd->horizontal_resolution != cvmd->horizontal_resolution)
-                                cvmd->horizontal_resolution = VIDEO_METADATA_HORIZONTAL_RESOLUTION_NO_ENTRY;
-                        if (svmd->vertical_resolution != cvmd->vertical_resolution)
-                                cvmd->vertical_resolution = VIDEO_METADATA_VERTICAL_RESOLUTION_NO_ENTRY;
-                        if (svmd->frame_rate != cvmd->frame_rate)
-                                cvmd->frame_rate = VIDEO_METADATA_FRAME_RATE_NO_ENTRY;
+			if (svmd->horizontal_resolution != cvmd->horizontal_resolution)
+				cvmd->horizontal_resolution = VIDEO_METADATA_HORIZONTAL_RESOLUTION_NO_ENTRY;
+			if (svmd->vertical_resolution != cvmd->vertical_resolution)
+				cvmd->vertical_resolution = VIDEO_METADATA_VERTICAL_RESOLUTION_NO_ENTRY;
+			if (svmd->frame_rate != cvmd->frame_rate)
+				cvmd->frame_rate = VIDEO_METADATA_FRAME_RATE_NO_ENTRY;
 			if (i > 0)
 				cvmd->number_of_clips += svmd->number_of_clips;
 			if (svmd->maximum_clip_bytes > cvmd->maximum_clip_bytes)
 				cvmd->maximum_clip_bytes = svmd->maximum_clip_bytes;
 			if (strcmp(svmd->video_format, cvmd->video_format))
 				bzero(cvmd->video_format, VIDEO_METADATA_VIDEO_FORMAT_BYTES);
-                        if (svmd->video_file_CRC != cvmd->video_file_CRC)
-                                cvmd->video_file_CRC = CRC_NO_ENTRY;
-                        if (memcmp(svmd->protected_region, cvmd->protected_region, VIDEO_METADATA_SECTION_2_PROTECTED_REGION_BYTES))
-                                bzero(cvmd->protected_region, VIDEO_METADATA_SECTION_2_PROTECTED_REGION_BYTES);
-                        if (memcmp(svmd->discretionary_region, cvmd->discretionary_region, VIDEO_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES))
-                                bzero(cvmd->discretionary_region, VIDEO_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES);
+			if (svmd->video_file_CRC != cvmd->video_file_CRC)
+				cvmd->video_file_CRC = CRC_NO_ENTRY;
+			if (memcmp(svmd->protected_region, cvmd->protected_region, VIDEO_METADATA_SECTION_2_PROTECTED_REGION_BYTES))
+				bzero(cvmd->protected_region, VIDEO_METADATA_SECTION_2_PROTECTED_REGION_BYTES);
+			if (memcmp(svmd->discretionary_region, cvmd->discretionary_region, VIDEO_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES))
+				bzero(cvmd->discretionary_region, VIDEO_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES);
 			// section 3
 			if (smd3->recording_time_offset != cmd3->recording_time_offset)
 				cmd3->recording_time_offset = UUTC_NO_ENTRY;
@@ -5601,8 +5599,8 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				bzero(cmd3->protected_region, METADATA_SECTION_3_PROTECTED_REGION_BYTES);
 			if (memcmp(smd3->discretionary_region, cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES))
 				bzero(cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES);
-                }
-        }
+		}
+	}
 
 	// read channel records indices/data (if required and present)
 	if (MEF_globals->read_record_indices || read_record_data) {
@@ -6073,35 +6071,34 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 		stmd = session->time_series_metadata.time_series_section_2;
 		cmd3 = chan->metadata.section_3;
 		smd3 = session->time_series_metadata.section_3;
+		
+		// update session properties based on each channel
+		if (ABS(chan->earliest_start_time) < ABS(session->earliest_start_time))
+			session->earliest_start_time = chan->earliest_start_time;
+		if (ABS(chan->latest_end_time) > ABS(session->latest_end_time))
+			session->latest_end_time = chan->latest_end_time;
+		if (chan->record_data_fps != NULL) {
+			if (session->maximum_number_of_records < chan->maximum_number_of_records)
+				session->maximum_number_of_records = chan->maximum_number_of_records;
+			if (session->maximum_record_bytes < chan->maximum_record_bytes)
+				session->maximum_record_bytes = chan->maximum_record_bytes;
+		}
+		
+		// initialize the session metadata based on the first channel metadata
 		if (i == 0) {
 			memcpy(smd1, cmd1, METADATA_SECTION_1_BYTES);
 			memcpy(stmd, ctmd, METADATA_SECTION_2_BYTES);
 			memcpy(smd3, cmd3, METADATA_SECTION_3_BYTES);
-			if (chan->record_data_fps != NULL) {
-				if (session->maximum_number_of_records < chan->maximum_number_of_records)
-					session->maximum_number_of_records = chan->maximum_number_of_records;
-				if (session->maximum_record_bytes < chan->maximum_record_bytes)
-					session->maximum_record_bytes = chan->maximum_record_bytes;
-			}
 			if (strlen(session->anonymized_name) == 0)
 				MEF_strncpy(session->anonymized_name, chan->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			else if (strcmp(session->anonymized_name, chan->anonymized_name))
 				bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			continue;
 		}
-		// universal header
-		if (ABS(chan->earliest_start_time) < ABS(session->earliest_start_time))
-			session->earliest_start_time = chan->earliest_start_time;
-		if (ABS(chan->latest_end_time) > ABS(session->latest_end_time))
-			session->latest_end_time = chan->latest_end_time;
+
+		// anonymized_name
 		if (strcmp(session->anonymized_name, chan->anonymized_name))
 			bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-		if (chan->record_data_fps != NULL) {
-			if (chan->record_data_fps->universal_header->number_of_entries > session->maximum_number_of_records)
-				session->maximum_number_of_records = chan->record_data_fps->universal_header->number_of_entries;
-			if (chan->record_data_fps->universal_header->maximum_entry_size > session->maximum_record_bytes)
-				session->maximum_record_bytes = chan->record_data_fps->universal_header->maximum_entry_size;
-		}
 		// section 1
 		if (smd1->section_2_encryption != cmd1->section_2_encryption)
 			smd1->section_2_encryption = ENCRYPTION_LEVEL_NO_ENTRY;
@@ -6137,13 +6134,13 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 		if (ctmd->units_conversion_factor != stmd->units_conversion_factor)
 			stmd->units_conversion_factor = TIME_SERIES_METADATA_UNITS_CONVERSION_FACTOR_NO_ENTRY;
 		if (strcmp(ctmd->units_description, stmd->units_description))
-                	bzero(stmd->units_description, TIME_SERIES_METADATA_UNITS_DESCRIPTION_BYTES);
+			bzero(stmd->units_description, TIME_SERIES_METADATA_UNITS_DESCRIPTION_BYTES);
 		if (ctmd->maximum_native_sample_value > stmd->maximum_native_sample_value)
 			stmd->maximum_native_sample_value = ctmd->maximum_native_sample_value;
 		if (ctmd->minimum_native_sample_value < stmd->minimum_native_sample_value)
 			stmd->minimum_native_sample_value = ctmd->minimum_native_sample_value;
-                if (ctmd->start_sample < stmd->start_sample)
-                        stmd->start_sample = ctmd->start_sample;
+		if (ctmd->start_sample < stmd->start_sample)
+			stmd->start_sample = ctmd->start_sample;
 		if (ctmd->number_of_samples > stmd->number_of_samples)
 			stmd->number_of_samples = ctmd->number_of_samples;
 		if (ctmd->number_of_blocks > stmd->number_of_blocks)
@@ -6208,35 +6205,34 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 		svmd = session->video_metadata.video_section_2;
 		cmd3 = chan->metadata.section_3;
 		smd3 = session->time_series_metadata.section_3;
+		
+		// update session properties based on each channel
+		if (ABS(chan->earliest_start_time) < ABS(session->earliest_start_time))
+			session->earliest_start_time = chan->earliest_start_time;
+		if (ABS(chan->latest_end_time) > ABS(session->latest_end_time))
+			session->latest_end_time = chan->latest_end_time;
+		if (chan->record_data_fps != NULL) {
+			if (session->maximum_number_of_records < chan->maximum_number_of_records)
+				session->maximum_number_of_records = chan->maximum_number_of_records;
+			if (session->maximum_record_bytes < chan->maximum_record_bytes)
+				session->maximum_record_bytes = chan->maximum_record_bytes;
+		}
+		
+		// initialize the session metadata based on the first channel metadata
 		if (i == 0) {
 			memcpy(smd1, cmd1, METADATA_SECTION_1_BYTES);
 			memcpy(svmd, cvmd, METADATA_SECTION_2_BYTES);
 			memcpy(smd3, cmd3, METADATA_SECTION_3_BYTES);
-			if (chan->record_data_fps != NULL) {
-				if (session->maximum_number_of_records < chan->maximum_number_of_records)
-					session->maximum_number_of_records = chan->maximum_number_of_records;
-				if (session->maximum_record_bytes < chan->maximum_record_bytes)
-					session->maximum_record_bytes = chan->maximum_record_bytes;
-			}
 			if (strlen(session->anonymized_name) == 0)
 				MEF_strncpy(session->anonymized_name, chan->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			else if (strcmp(session->anonymized_name, chan->anonymized_name))
 				bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			continue;
 		}
-		// universal header
-		if (ABS(chan->earliest_start_time) < ABS(session->earliest_start_time))
-			session->earliest_start_time = chan->earliest_start_time;
-		if (ABS(chan->latest_end_time) > ABS(session->latest_end_time))
-			session->latest_end_time = chan->latest_end_time;
+		
+		// anonymized_name
 		if (strcmp(session->anonymized_name, chan->anonymized_name))
 			bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-		if (chan->record_data_fps != NULL) {
-			if (chan->record_data_fps->universal_header->number_of_entries > session->maximum_number_of_records)
-				session->maximum_number_of_records = chan->record_data_fps->universal_header->number_of_entries;
-			if (chan->record_data_fps->universal_header->maximum_entry_size > session->maximum_record_bytes)
-				session->maximum_record_bytes = chan->record_data_fps->universal_header->maximum_entry_size;
-		}
 		// section 1
 		if (smd1->section_2_encryption != cmd1->section_2_encryption)
 			smd1->section_2_encryption = ENCRYPTION_LEVEL_NO_ENTRY;
@@ -6266,7 +6262,7 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 		if (cvmd->maximum_clip_bytes > svmd->maximum_clip_bytes)
 			svmd->maximum_clip_bytes = cvmd->maximum_clip_bytes;
 		if (strcmp(cvmd->video_format, svmd->video_format))
-                	bzero(svmd->video_format, VIDEO_METADATA_VIDEO_FORMAT_BYTES);
+            bzero(svmd->video_format, VIDEO_METADATA_VIDEO_FORMAT_BYTES);
 		if (svmd->video_file_CRC != cvmd->video_file_CRC)
 			svmd->video_file_CRC = CRC_NO_ENTRY;
 		if (memcmp(cvmd->protected_region, svmd->protected_region, VIDEO_METADATA_SECTION_2_PROTECTED_REGION_BYTES))
