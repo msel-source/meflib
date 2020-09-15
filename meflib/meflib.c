@@ -5401,14 +5401,11 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
 				memcpy(ctmd, stmd, METADATA_SECTION_2_BYTES);
 				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
-				if (strlen(channel->anonymized_name) == 0)
-					MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-				else if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
-					bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+				MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 				continue;
 			}
 			
-			// univeral header
+			// anonymized_name
 			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
 				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			// section 1
@@ -5532,14 +5529,11 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
 				memcpy(cvmd, svmd, METADATA_SECTION_2_BYTES);
 				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
-				if (strlen(channel->anonymized_name) == 0)
-					MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-				else if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
-					bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+				MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 				continue;
 			}
 			
-			// universal header
+			// anonymized_name
 			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
 				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			// section 1
@@ -5625,7 +5619,6 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				channel->maximum_number_of_records = channel->record_data_fps->universal_header->number_of_entries;
 			if (channel->maximum_record_bytes < channel->record_data_fps->universal_header->maximum_entry_size)
 				channel->maximum_record_bytes = channel->record_data_fps->universal_header->maximum_entry_size;
-			MEF_strncpy(channel->anonymized_name, channel->record_data_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 		}
 	}
 
@@ -6089,10 +6082,7 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 			memcpy(smd1, cmd1, METADATA_SECTION_1_BYTES);
 			memcpy(stmd, ctmd, METADATA_SECTION_2_BYTES);
 			memcpy(smd3, cmd3, METADATA_SECTION_3_BYTES);
-			if (strlen(session->anonymized_name) == 0)
-				MEF_strncpy(session->anonymized_name, chan->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-			else if (strcmp(session->anonymized_name, chan->anonymized_name))
-				bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+			MEF_strncpy(session->anonymized_name, chan->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			continue;
 		}
 
@@ -6223,10 +6213,7 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 			memcpy(smd1, cmd1, METADATA_SECTION_1_BYTES);
 			memcpy(svmd, cvmd, METADATA_SECTION_2_BYTES);
 			memcpy(smd3, cmd3, METADATA_SECTION_3_BYTES);
-			if (strlen(session->anonymized_name) == 0)
-				MEF_strncpy(session->anonymized_name, chan->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-			else if (strcmp(session->anonymized_name, chan->anonymized_name))
-				bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+			MEF_strncpy(session->anonymized_name, chan->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			continue;
 		}
 		
@@ -6315,11 +6302,6 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 				session->maximum_number_of_records = session->record_data_fps->universal_header->number_of_entries;
 			if (session->maximum_record_bytes < session->record_data_fps->universal_header->maximum_entry_size)
 				session->maximum_record_bytes = session->record_data_fps->universal_header->maximum_entry_size;
-			if (ABS(session->record_data_fps->universal_header->start_time) < ABS(session->earliest_start_time))
-				session->earliest_start_time = session->record_data_fps->universal_header->start_time;
-			if (ABS(session->latest_end_time) < session->record_data_fps->universal_header->end_time)
-				session->latest_end_time = session->record_data_fps->universal_header->end_time;
-			MEF_strncpy(session->anonymized_name, session->record_data_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 		}
 	}
 	
