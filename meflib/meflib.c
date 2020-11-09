@@ -3607,8 +3607,8 @@ void	force_behavior(ui4 behavior)
 
 
 void	fps_close(FILE_PROCESSING_STRUCT *fps) {
-	
-	fclose(fps->fp);
+	if (fps->fp != NULL)
+		fclose(fps->fp);
 	fps->fp = NULL;
 	fps->fd = -1;
 	
@@ -6775,7 +6775,7 @@ si4	*RED_detrend(RED_PROCESSING_STRUCT *rps, si4 *input_buffer, si4 *output_buff
 }
 
 
-inline void	RED_encode(RED_PROCESSING_STRUCT *rps)
+void	RED_encode(RED_PROCESSING_STRUCT *rps)
 {
 	// RED compress from original_ptr to block_header pointer (compressed data array)
 	
@@ -7454,7 +7454,7 @@ inline RED_BLOCK_HEADER	*RED_update_RPS_pointers(RED_PROCESSING_STRUCT *rps, ui1
 /*************************************************************************/
 
 
-si4	remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_frequency, sf8 *template)
+si4	remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_frequency, sf8 *template_array)
 {
         FILT_PROCESSING_STRUCT	*filtps;
         si8			i, j, si8_curr_samp, leftovers, median_pt;
@@ -7475,8 +7475,8 @@ si4	remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_f
         template_len = (si4) (sf8_template_len + 0.5);
         n_waveforms = (si4) ((sf8) n_samps / sf8_template_len);
         point_arrays = (sf8 *) e_calloc((size_t) template_len * n_waveforms, sizeof(sf8), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-	if (template == NULL) {
-                template = (sf8 *) e_calloc((size_t) template_len, sizeof(sf8), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+	if (template_array == NULL) {
+                template_array = (sf8 *) e_calloc((size_t) template_len, sizeof(sf8), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 		free_template = MEF_TRUE;
 	} else {
 		free_template = MEF_FALSE;
@@ -7505,7 +7505,7 @@ si4	remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_f
         median_pt = n_waveforms / 2;
         pa = point_arrays + median_pt;
         for (i = 0; i < template_len; ++i) {
-                template[i] = *pa;
+                template_array[i] = *pa;
                 pa += n_waveforms;
         }
 	
@@ -7514,22 +7514,22 @@ si4	remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_f
 	si8_curr_samp = 0;
         for  (i = 0; i < n_waveforms; ++i) {
                 for (j = 0; j < template_len; ++j, ++si8_curr_samp)
-                        data[si8_curr_samp] = RED_round((sf8) data[si8_curr_samp] - template[j]);
+                        data[si8_curr_samp] = RED_round((sf8) data[si8_curr_samp] - template_array[j]);
                 sf8_curr_samp += sf8_template_len;
 		if (si8_curr_samp < (si8) (sf8_curr_samp + 0.5)) {
-                        data[si8_curr_samp] -= template[0];
+                        data[si8_curr_samp] -= template_array[0];
 			++si8_curr_samp;
 		}
         }
         leftovers = n_samps - ++si8_curr_samp;
         for (i = 0; i < leftovers; ++i, si8_curr_samp++)
-                data[si8_curr_samp] = RED_round((sf8) data[si8_curr_samp] - template[i]);
+                data[si8_curr_samp] = RED_round((sf8) data[si8_curr_samp] - template_array[i]);
 	
         // clean up
         free(point_arrays);
         FILT_free_processing_struct(filtps, MEF_FALSE, MEF_FALSE);
         if (free_template == MEF_TRUE)
-                free(template);
+                free(template_array);
         
         
         return(template_len);
