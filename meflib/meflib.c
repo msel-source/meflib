@@ -6,7 +6,7 @@
 
 
 // Specification for Multiscale Electrophysiology Format (MEF) version 3.0
-// Copyright 2020, Mayo Foundation, Rochester MN. All rights reserved.
+// Copyright 2021, Mayo Foundation, Rochester MN. All rights reserved.
 // Written by Matt Stead, Ben Brinkmann, and Dan Crepeau.
 
 // Usage and modification of this source code is governed by the Apache 2.0 license.
@@ -2322,10 +2322,14 @@ si4	encrypt_records(FILE_PROCESSING_STRUCT *fps)
 #ifdef _WIN32
 	si4	extract_path_parts(si1 *full_file_name, si1 *path, si1 *name, si1 *extension)
 	{
-		si1	*c, *cc, *cwd, temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
+		si1* c, * cc, * cwd;
+		si1 temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
+		si1 temp_full_file_name_backslash[MEF_FULL_FILE_NAME_BYTES];
+		TCHAR** lppPart = { NULL };
 		
-	    slash_to_backslash(full_file_name);
-		MEF_strncpy(temp_full_file_name, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
+		MEF_strncpy(temp_full_file_name_backslash, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
+	    slash_to_backslash(temp_full_file_name_backslash);
+		GetFullPathNameA(temp_full_file_name_backslash, MEF_FULL_FILE_NAME_BYTES, temp_full_file_name, lppPart);
 		
 		// move pointer to end of string
 		c = temp_full_file_name + strlen(temp_full_file_name) - 1;
