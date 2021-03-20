@@ -9,7 +9,7 @@
 
 
 // Specification for Multiscale Electrophysiology Format (MEF) version 3.0
-// Copyright 2020, Mayo Foundation, Rochester MN. All rights reserved.
+// Copyright 2021, Mayo Foundation, Rochester MN. All rights reserved.
 // Written by Matt Stead, Ben Brinkmann, and Dan Crepeau.
 
 // Usage and modification of this source code is governed by the Apache 2.0 license.
@@ -218,7 +218,11 @@ void	*e_realloc(void *ptr, size_t n_bytes, const si1 *function, si4 line, ui4 be
 #define TIME_STRING_BYTES			32
 #define MEF_BASE_FILE_NAME_BYTES		256	// utf8[63]
 #define MEF_SEGMENT_BASE_FILE_NAME_BYTES	(MEF_BASE_FILE_NAME_BYTES + 8)
-#define MEF_FULL_FILE_NAME_BYTES		1024	// utf8[255]
+#ifdef _WIN32
+#define MEF_FULL_FILE_NAME_BYTES	(_MAX_PATH * 4)
+#else
+#define MEF_FULL_FILE_NAME_BYTES	(PATH_MAX * 4)
+#endif
 #define PAD_BYTE_VALUE				0x7e	// ascii tilde ("~")
 #define FILE_NUMBERING_DIGITS			6
 #define NO_TYPE_CODE				0
