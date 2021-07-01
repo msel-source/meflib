@@ -317,8 +317,8 @@ si4	check_mefrec_Curs_type_alignment(ui1 *bytes);
 #define MEFREC_Epoc_1_0_TIMESTAMP_OFFSET  	(RECORD_HEADER_BYTES + 8)		// si8
 #define MEFREC_Epoc_1_0_END_TIMESTAMP_OFFSET		(RECORD_HEADER_BYTES + 16)		// si8
 #define MEFREC_Epoc_1_0_DURATION_OFFSET     (RECORD_HEADER_BYTES + 24)       // si8
-#define MEFREC_Epoc_1_0_TYPE_OFFSET         (RECORD_HEADER_BYTES + 32)       // utf8[7]
-#define MEFREC_Epoc_1_0_TYPE_BYTES          32
+#define MEFREC_Epoc_1_0_EPOCH_TYPE_OFFSET    (RECORD_HEADER_BYTES + 32)       // utf8[7]
+#define MEFREC_Epoc_1_0_EPOCH_TYPE_BYTES     32
 #define MEFREC_Epoc_1_0_TEXT_OFFSET         (RECORD_HEADER_BYTES + 64)       // utf8[31]
 #define MEFREC_Epoc_1_0_TEXT_BYTES          128
 
@@ -328,7 +328,7 @@ typedef struct {
 	si8 timestamp;
 	si8 end_timestamp;
 	si8 duration;
-    si1 type[MEFREC_Epoc_1_0_TYPE_BYTES];
+    si1 epoch_type[MEFREC_Epoc_1_0_EPOCH_TYPE_BYTES];
 	si1 text[MEFREC_Epoc_1_0_TEXT_BYTES];
 } MEFREC_Epoc_1_0;
 

@@ -909,7 +909,7 @@ void	show_mefrec_Epoc_type(RECORD_HEADER *record_header)
 #else
         printf("Duration: %ld (microseconds)\n", epoch->duration);
 #endif
-        printf("Type: %s\n", epoch->type);
+        printf("Epoch type: %s\n", epoch->epoch_type);
         printf("Text: %s\n", epoch->text);
     }
     // Unrecognized record version
@@ -947,7 +947,7 @@ si4	check_mefrec_Epoc_type_alignment(ui1 *bytes)
         goto MEFREC_Epoc_1_0_NOT_ALIGNED;
     if (&epoch->duration != (si8 *) (bytes + MEFREC_Epoc_1_0_DURATION_OFFSET))
         goto MEFREC_Epoc_1_0_NOT_ALIGNED;
-    if (epoch->type != (si1 *) (bytes + MEFREC_Epoc_1_0_TYPE_OFFSET))
+    if (epoch->epoch_type != (si1 *) (bytes + MEFREC_Epoc_1_0_EPOCH_TYPE_OFFSET))
         goto MEFREC_Epoc_1_0_NOT_ALIGNED;
     if (epoch->text != (si1 *) (bytes + MEFREC_Epoc_1_0_TEXT_OFFSET))
         goto MEFREC_Epoc_1_0_NOT_ALIGNED;
