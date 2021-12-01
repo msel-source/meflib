@@ -652,7 +652,7 @@ typedef struct {
         si1			session_description[METADATA_SESSION_DESCRIPTION_BYTES]; // utf8[511];
         si8			recording_duration;
         // type-specific fields
-	si1			reference_description[METADATA_CHANNEL_DESCRIPTION_BYTES]; // utf8[511];
+	si1			reference_description[TIME_SERIES_METADATA_REFERENCE_DESCRIPTION_BYTES]; // utf8[511];
 	si8			acquisition_channel_number;
         sf8			sampling_frequency;
         sf8			low_frequency_filter_setting;
