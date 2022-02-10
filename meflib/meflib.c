@@ -743,16 +743,18 @@ FILE_PROCESSING_STRUCT	*allocate_file_processing_struct(si8 raw_data_bytes, ui4 
 
 inline void	apply_recording_time_offset(si8 *time)
 {
-        if (*time == UUTC_NO_ENTRY)
-                return;
+	if (*time == UUTC_NO_ENTRY)
+		return;
         
 	if (*time < 0)  // negative times indicate recording time offset already applied
 		return;
 	
-	// apply recording time offset & make negative to indicate application
-	*time = -(*time - MEF_globals->recording_time_offset);
-	
-        
+	// apply recording time offset (on valid offset entry) and make negative to indicate application
+	if (MEF_globals->recording_time_offset == METADATA_RECORDING_TIME_OFFSET_NO_ENTRY)
+		*time = -(*time);
+	else
+		*time = -(*time - MEF_globals->recording_time_offset);
+
 	return;
 }
 
@@ -7612,16 +7614,18 @@ void	remove_line_noise_adaptive(si4 *data, si8 n_samps, sf8 sampling_frequency, 
 
 inline void	remove_recording_time_offset(si8 *time)
 {
-        if (*time == UUTC_NO_ENTRY)
-                return;
-	
-	if (*time > 0)  // positive times indicate recording time offset not applied, 0 - unlikely any records started at 1970.
+	if (*time == UUTC_NO_ENTRY)
 		return;
-	
-	// remove recording time offset & make positive to indicate removal
-	*time = (-*time) + MEF_globals->recording_time_offset;
-	
-	
+
+	if (*time >= 0)  // 0 and positive times indicate recording time offset not applied
+		return;
+
+	// remove recording time offset (on valid offset entry) and make positive to indicate removal
+	if (MEF_globals->recording_time_offset == METADATA_RECORDING_TIME_OFFSET_NO_ENTRY)
+		*time = -(*time);
+	else
+		*time = (-*time) + MEF_globals->recording_time_offset;
+
 	return;
 }
 
