@@ -4486,10 +4486,55 @@ si4	initialize_meflib()
 	(void) SHA256_initialize_h0_table(MEF_TRUE);
 	(void) SHA256_initialize_k_table(MEF_TRUE);
 	
-	
 	return(return_value);
 }
 
+void free_meflib()
+{
+	
+	if (MEF_globals != NULL) {
+		
+		if (MEF_globals->SHA256_k_table != NULL) {
+			free(MEF_globals->SHA256_k_table);
+			MEF_globals->SHA256_k_table = NULL;
+		}
+		if (MEF_globals->SHA256_h0_table != NULL) {
+			free(MEF_globals->SHA256_h0_table);
+			MEF_globals->SHA256_h0_table = NULL;
+		}
+		if (MEF_globals->AES_rcon_table != NULL) {
+			free(MEF_globals->AES_rcon_table);
+			MEF_globals->AES_rcon_table = NULL;
+		}
+		if (MEF_globals->AES_rsbox_table != NULL) {
+			free(MEF_globals->AES_rsbox_table);
+			MEF_globals->AES_rsbox_table = NULL;
+		}
+		if (MEF_globals->AES_sbox_table != NULL) {
+			free(MEF_globals->AES_sbox_table);
+			MEF_globals->AES_sbox_table = NULL;
+		}
+		if (MEF_globals->UTF8_trailing_bytes_for_UTF8_table != NULL) {
+			free(MEF_globals->UTF8_trailing_bytes_for_UTF8_table);
+			MEF_globals->UTF8_trailing_bytes_for_UTF8_table = NULL;
+		}
+		if (MEF_globals->UTF8_offsets_from_UTF8_table != NULL) {
+			free(MEF_globals->UTF8_offsets_from_UTF8_table);
+			MEF_globals->UTF8_offsets_from_UTF8_table = NULL;
+		}
+		if (MEF_globals->CRC_table != NULL) {
+			free(MEF_globals->CRC_table);
+			MEF_globals->CRC_table = NULL;
+		}
+		if (MEF_globals->RED_normal_CDF_table != NULL) {
+			free(MEF_globals->RED_normal_CDF_table);
+			MEF_globals->RED_normal_CDF_table = NULL;
+		}
+		
+		free(MEF_globals);
+		MEF_globals = NULL;
+	}
+}
 
 si4	initialize_metadata(FILE_PROCESSING_STRUCT *fps)
 {
