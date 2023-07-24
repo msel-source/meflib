@@ -562,7 +562,6 @@ void	*e_realloc(void *ptr, size_t n_bytes, const si1 *function, si4 line, ui4 be
 #define TIME_SERIES_INDEX_PROTECTED_REGION_OFFSET		40
 #define TIME_SERIES_INDEX_PROTECTED_REGION_BYTES		4
 #define TIME_SERIES_INDEX_RED_BLOCK_FLAGS_OFFSET		44		// ui1
-#define RED_BLOCK_FLAGS_BYTES					1
 #define TIME_SERIES_INDEX_RED_BLOCK_PROTECTED_REGION_OFFSET	45
 #define RED_BLOCK_PROTECTED_REGION_BYTES			3
 #define TIME_SERIES_INDEX_RED_BLOCK_DISCRETIONARY_REGION_OFFSET	48
@@ -908,8 +907,9 @@ si8			generate_recording_time_offset(si8 recording_start_time_uutc, si4 GMT_offs
 si1			*generate_segment_name(FILE_PROCESSING_STRUCT *fps, si1 *segment_name);
 ui1			*generate_UUID(ui1 *uuid);
 FILE_PROCESSING_DIRECTIVES *initialize_file_processing_directives(FILE_PROCESSING_DIRECTIVES *directives);
-void			initialize_MEF_globals(void);
+void		initialize_MEF_globals(void);
 si4			initialize_meflib(void);
+void		free_meflib(void);
 si4			initialize_metadata(FILE_PROCESSING_STRUCT *fps);
 si4			initialize_universal_header(FILE_PROCESSING_STRUCT *fps, si1 generate_level_UUID, si1 generate_file_UUID, si1 originating_file);
 si1			*local_date_time_string(si8 uutc_time, si1 *time_str);
